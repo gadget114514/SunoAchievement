@@ -1,0 +1,58 @@
+{
+  "name": "suno-achievement",
+  "productName": "Suno Achievement",
+  "version": "1.0.0",
+  "description": "Achievement showcase for Suno profiles",
+  "main": "main.js",
+  "author": "gadget114514",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win",
+    "scrape": "node scripts/scrape.js",
+    "check": "node --check main.js && node --check preload.js && node --check lib/suno-core.js && node --check scripts/scrape.js && node --check renderer/js/config.js && node --check renderer/js/i18n.js && node --check renderer/js/achievements.js && node --check renderer/js/suno.js && node --check renderer/js/app.js && node --check renderer/js/snapshot.js"
+  },
+  "build": {
+    "appId": "com.gadget114514.sunoachievement",
+    "productName": "Suno Achievement",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "lib/**/*",
+      "renderer/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "SunoAchievement-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "SunoAchievement-Portable-${version}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "electron": "^44.4.3",
+    "electron-builder": "^26.15.3"
+  }
+}
