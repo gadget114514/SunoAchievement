@@ -34,6 +34,8 @@ Paste a profile URL in the format `suno.com/@handle` (or just `@handle`) and pre
 
 Press **Save snapshot (.jpg)** to export a shareable 1920x1080 JPEG of the achievement panel. The snapshot is rendered in a dedicated hidden window at exactly 1920x1080 in the currently selected language, waits for avatars and covers to load, then captures the page. It is fully self-contained: profile header, stats, completion ring, and all 32 badges with progress.
 
+![Example snapshot](snapshot/suno-suno-achievement.jpg)
+
 ## Building Windows installers
 
 ```bash
