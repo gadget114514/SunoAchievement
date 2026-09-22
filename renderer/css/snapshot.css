@@ -209,18 +209,93 @@ body {
 }
 
 .snap-badge {
+  --tint: var(--accent);
+  --tint-2: var(--accent-2);
+  --level: var(--line);
+  position: relative;
   background: var(--card-2);
   border: 1px solid var(--line-soft);
   border-radius: 12px;
-  padding: 13px 15px;
+  padding: 13px 15px 13px 19px;
   display: flex;
   flex-direction: column;
   gap: 7px;
   overflow: hidden;
 }
 
+.snap-badge::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: var(--level);
+}
+
+.snap-badge[data-tier='white'] {
+  --level: #eef1f8;
+}
+
+.snap-badge[data-tier='bronze'] {
+  --level: #cd7f32;
+}
+
+.snap-badge[data-tier='silver'] {
+  --level: #c3cad8;
+}
+
+.snap-badge[data-tier='gold'] {
+  --level: #ffc247;
+}
+
+.snap-badge[data-category='catalog'] {
+  --tint: #4d8dff;
+  --tint-2: #6f5bff;
+}
+
+.snap-badge[data-category='plays'] {
+  --tint: #5fd44d;
+  --tint-2: #22c07a;
+}
+
+.snap-badge[data-category='likes'] {
+  --tint: #ff5c8a;
+  --tint-2: #ff2d68;
+}
+
+.snap-badge[data-category='tiers'] {
+  --tint: #ffc247;
+  --tint-2: #ff8a3d;
+}
+
+.snap-badge[data-category='superlatives'] {
+  --tint: #b06bff;
+  --tint-2: #8a5cff;
+}
+
+.snap-badge[data-category='time'] {
+  --tint: #4dc8ff;
+  --tint-2: #2f7cf6;
+}
+
+.snap-badge[data-category='diversity'] {
+  --tint: #ff5cd0;
+  --tint-2: #b44dff;
+}
+
+.snap-badge[data-category='community'] {
+  --tint: #7c8cff;
+  --tint-2: #5566ff;
+}
+
+.snap-badge[data-category='gem'] {
+  --tint: #2ee6c0;
+  --tint-2: #0fb8b8;
+}
+
 .snap-badge.is-unlocked {
-  border-color: rgba(255, 138, 61, 0.42);
+  border-color: color-mix(in srgb, var(--tint) 45%, transparent);
 }
 
 .snap-badge.is-locked {
@@ -251,13 +326,13 @@ body {
 }
 
 .snap-badge.is-unlocked .snap-badge-icon {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  background: linear-gradient(135deg, var(--tint), var(--tint-2));
   border-color: transparent;
   color: #fff;
 }
 
 .snap-badge.is-locked .snap-badge-icon {
-  color: var(--muted);
+  color: var(--tint);
 }
 
 .snap-badge-head h3 {
@@ -310,7 +385,7 @@ body {
   height: 100%;
   width: 0;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  background: linear-gradient(90deg, var(--tint), var(--tint-2));
 }
 
 .snap-progress-text {

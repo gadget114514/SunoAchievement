@@ -439,7 +439,7 @@
     const percent = Math.round(badge.progress * 100);
     const progressText = badge.kind === 'metric' || badge.kind === 'best' ? `${fmtNum(badge.current)} / ${fmtNum(badge.target)}` : '';
     return `
-      <article class="badge ${badge.unlocked ? 'is-unlocked' : 'is-locked'}">
+      <article class="badge ${badge.unlocked ? 'is-unlocked' : 'is-locked'}" data-category="${esc(badge.category)}" data-tier="${esc(badge.tier)}">
         <div class="badge-icon"><svg class="icon"><use href="#ic-${badge.icon}"></use></svg></div>
         <div class="badge-body">
           <div class="badge-top">

@@ -87,46 +87,46 @@ SA.achievements = (() => {
   const CATEGORIES = ['catalog', 'plays', 'likes', 'tiers', 'superlatives', 'time', 'diversity', 'community', 'gem'];
 
   const BADGES = [
-    { id: 'catalog_first', category: 'catalog', icon: 'music', target: 1, value: (a) => a.songCount },
-    { id: 'catalog_10', category: 'catalog', icon: 'music', target: 10, value: (a) => a.songCount },
-    { id: 'catalog_50', category: 'catalog', icon: 'music', target: 50, value: (a) => a.songCount },
-    { id: 'catalog_100', category: 'catalog', icon: 'music', target: 100, value: (a) => a.songCount },
-    { id: 'catalog_500', category: 'catalog', icon: 'music', target: 500, value: (a) => a.songCount },
+    { id: 'catalog_first', tier: 'white', category: 'catalog', icon: 'music', target: 1, value: (a) => a.songCount },
+    { id: 'catalog_10', tier: 'bronze', category: 'catalog', icon: 'music', target: 10, value: (a) => a.songCount },
+    { id: 'catalog_50', tier: 'silver', category: 'catalog', icon: 'music', target: 50, value: (a) => a.songCount },
+    { id: 'catalog_100', tier: 'gold', category: 'catalog', icon: 'music', target: 100, value: (a) => a.songCount },
+    { id: 'catalog_500', tier: 'gold', category: 'catalog', icon: 'music', target: 500, value: (a) => a.songCount },
 
-    { id: 'plays_1k', category: 'plays', icon: 'play', target: 1000, value: (a) => a.totalPlays },
-    { id: 'plays_10k', category: 'plays', icon: 'play', target: 10000, value: (a) => a.totalPlays },
-    { id: 'plays_100k', category: 'plays', icon: 'play', target: 100000, value: (a) => a.totalPlays },
-    { id: 'plays_1m', category: 'plays', icon: 'play', target: 1000000, value: (a) => a.totalPlays },
+    { id: 'plays_1k', tier: 'white', category: 'plays', icon: 'play', target: 1000, value: (a) => a.totalPlays },
+    { id: 'plays_10k', tier: 'bronze', category: 'plays', icon: 'play', target: 10000, value: (a) => a.totalPlays },
+    { id: 'plays_100k', tier: 'silver', category: 'plays', icon: 'play', target: 100000, value: (a) => a.totalPlays },
+    { id: 'plays_1m', tier: 'gold', category: 'plays', icon: 'play', target: 1000000, value: (a) => a.totalPlays },
 
-    { id: 'likes_1', category: 'likes', icon: 'heart', target: 1, value: (a) => a.totalLikes },
-    { id: 'likes_100', category: 'likes', icon: 'heart', target: 100, value: (a) => a.totalLikes },
-    { id: 'likes_1k', category: 'likes', icon: 'heart', target: 1000, value: (a) => a.totalLikes },
-    { id: 'likes_10k', category: 'likes', icon: 'heart', target: 10000, value: (a) => a.totalLikes },
+    { id: 'likes_1', tier: 'white', category: 'likes', icon: 'heart', target: 1, value: (a) => a.totalLikes },
+    { id: 'likes_100', tier: 'bronze', category: 'likes', icon: 'heart', target: 100, value: (a) => a.totalLikes },
+    { id: 'likes_1k', tier: 'silver', category: 'likes', icon: 'heart', target: 1000, value: (a) => a.totalLikes },
+    { id: 'likes_10k', tier: 'gold', category: 'likes', icon: 'heart', target: 10000, value: (a) => a.totalLikes },
 
-    { id: 'tier_hit', category: 'tiers', icon: 'award', kind: 'best', target: 1000, value: (a) => (a.topPlayed ? a.topPlayed.plays : 0), count: (a) => a.songs.filter((song) => song.plays >= 1000).length },
-    { id: 'tier_chart', category: 'tiers', icon: 'award', kind: 'best', target: 10000, value: (a) => (a.topPlayed ? a.topPlayed.plays : 0), count: (a) => a.songs.filter((song) => song.plays >= 10000).length },
-    { id: 'tier_viral', category: 'tiers', icon: 'award', kind: 'best', target: 100000, value: (a) => (a.topPlayed ? a.topPlayed.plays : 0), count: (a) => a.songs.filter((song) => song.plays >= 100000).length },
-    { id: 'tier_anthem', category: 'tiers', icon: 'award', kind: 'best', target: 1000000, value: (a) => (a.topPlayed ? a.topPlayed.plays : 0), count: (a) => a.songs.filter((song) => song.plays >= 1000000).length },
+    { id: 'tier_hit', tier: 'white', category: 'tiers', icon: 'award', kind: 'best', target: 1000, value: (a) => (a.topPlayed ? a.topPlayed.plays : 0), count: (a) => a.songs.filter((song) => song.plays >= 1000).length },
+    { id: 'tier_chart', tier: 'bronze', category: 'tiers', icon: 'award', kind: 'best', target: 10000, value: (a) => (a.topPlayed ? a.topPlayed.plays : 0), count: (a) => a.songs.filter((song) => song.plays >= 10000).length },
+    { id: 'tier_viral', tier: 'silver', category: 'tiers', icon: 'award', kind: 'best', target: 100000, value: (a) => (a.topPlayed ? a.topPlayed.plays : 0), count: (a) => a.songs.filter((song) => song.plays >= 100000).length },
+    { id: 'tier_anthem', tier: 'gold', category: 'tiers', icon: 'award', kind: 'best', target: 1000000, value: (a) => (a.topPlayed ? a.topPlayed.plays : 0), count: (a) => a.songs.filter((song) => song.plays >= 1000000).length },
 
-    { id: 'top_played', category: 'superlatives', icon: 'star', kind: 'binary', value: (a) => (a.topPlayed ? 1 : 0), detail: (a) => (a.topPlayed ? { type: 'song', song: a.topPlayed, stat: 'plays' } : null) },
-    { id: 'top_liked', category: 'superlatives', icon: 'heart', kind: 'binary', value: (a) => (a.topLiked ? 1 : 0), detail: (a) => (a.topLiked ? { type: 'song', song: a.topLiked, stat: 'likes' } : null) },
-    { id: 'top_commented', category: 'superlatives', icon: 'comment', kind: 'binary', value: (a) => (a.topCommented ? 1 : 0), detail: (a) => (a.topCommented ? { type: 'song', song: a.topCommented, stat: 'comments' } : null) },
+    { id: 'top_played', tier: 'white', category: 'superlatives', icon: 'star', kind: 'binary', value: (a) => (a.topPlayed ? 1 : 0), detail: (a) => (a.topPlayed ? { type: 'song', song: a.topPlayed, stat: 'plays' } : null) },
+    { id: 'top_liked', tier: 'bronze', category: 'superlatives', icon: 'heart', kind: 'binary', value: (a) => (a.topLiked ? 1 : 0), detail: (a) => (a.topLiked ? { type: 'song', song: a.topLiked, stat: 'likes' } : null) },
+    { id: 'top_commented', tier: 'silver', category: 'superlatives', icon: 'comment', kind: 'binary', value: (a) => (a.topCommented ? 1 : 0), detail: (a) => (a.topCommented ? { type: 'song', song: a.topCommented, stat: 'comments' } : null) },
 
-    { id: 'time_anniversary', category: 'time', icon: 'clock', kind: 'binary', value: (a) => (a.firstDate && Date.now() - Date.parse(a.firstDate) >= 365 * DAY_MS ? 1 : 0), detail: (a) => (a.firstDate ? { type: 'date', value: a.firstDate } : null) },
-    { id: 'time_marathon', category: 'time', icon: 'clock', target: 30, value: (a) => a.marathon },
-    { id: 'time_streak', category: 'time', icon: 'clock', target: 7, value: (a) => a.streak },
-    { id: 'time_early', category: 'time', icon: 'clock', kind: 'binary', value: (a) => (a.earlyBird ? 1 : 0) },
-    { id: 'time_night', category: 'time', icon: 'clock', kind: 'binary', value: (a) => (a.nightOwl ? 1 : 0) },
+    { id: 'time_anniversary', tier: 'silver', category: 'time', icon: 'clock', kind: 'binary', value: (a) => (a.firstDate && Date.now() - Date.parse(a.firstDate) >= 365 * DAY_MS ? 1 : 0), detail: (a) => (a.firstDate ? { type: 'date', value: a.firstDate } : null) },
+    { id: 'time_marathon', tier: 'gold', category: 'time', icon: 'clock', target: 30, value: (a) => a.marathon },
+    { id: 'time_streak', tier: 'bronze', category: 'time', icon: 'clock', target: 7, value: (a) => a.streak },
+    { id: 'time_early', tier: 'white', category: 'time', icon: 'clock', kind: 'binary', value: (a) => (a.earlyBird ? 1 : 0) },
+    { id: 'time_night', tier: 'white', category: 'time', icon: 'clock', kind: 'binary', value: (a) => (a.nightOwl ? 1 : 0) },
 
-    { id: 'diversity_genre', category: 'diversity', icon: 'shuffle', target: 8, value: (a) => a.distinctTags },
-    { id: 'diversity_models', category: 'diversity', icon: 'shuffle', target: 5, value: (a) => a.distinctModels },
-    { id: 'diversity_contest', category: 'diversity', icon: 'shuffle', kind: 'binary', value: (a) => (a.contestCount > 0 ? 1 : 0), detail: (a) => (a.contestCount ? { type: 'count', n: a.contestCount } : null) },
+    { id: 'diversity_genre', tier: 'white', category: 'diversity', icon: 'shuffle', target: 8, value: (a) => a.distinctTags },
+    { id: 'diversity_models', tier: 'bronze', category: 'diversity', icon: 'shuffle', target: 5, value: (a) => a.distinctModels },
+    { id: 'diversity_contest', tier: 'silver', category: 'diversity', icon: 'shuffle', kind: 'binary', value: (a) => (a.contestCount > 0 ? 1 : 0), detail: (a) => (a.contestCount ? { type: 'count', n: a.contestCount } : null) },
 
-    { id: 'social_100', category: 'community', icon: 'users', target: 100, value: (a) => a.followers },
-    { id: 'social_1k', category: 'community', icon: 'users', target: 1000, value: (a) => a.followers },
-    { id: 'social_10k', category: 'community', icon: 'users', target: 10000, value: (a) => a.followers },
+    { id: 'social_100', tier: 'white', category: 'community', icon: 'users', target: 100, value: (a) => a.followers },
+    { id: 'social_1k', tier: 'bronze', category: 'community', icon: 'users', target: 1000, value: (a) => a.followers },
+    { id: 'social_10k', tier: 'gold', category: 'community', icon: 'users', target: 10000, value: (a) => a.followers },
 
-    { id: 'gem_hidden', category: 'gem', icon: 'gem', kind: 'binary', value: (a) => (a.hiddenGem ? 1 : 0), detail: (a) => (a.hiddenGem ? { type: 'song', song: a.hiddenGem, stat: 'likes' } : null) },
+    { id: 'gem_hidden', tier: 'gold', category: 'gem', icon: 'gem', kind: 'binary', value: (a) => (a.hiddenGem ? 1 : 0), detail: (a) => (a.hiddenGem ? { type: 'song', song: a.hiddenGem, stat: 'likes' } : null) },
   ];
 
   function evaluate(data) {
@@ -142,6 +142,7 @@ SA.achievements = (() => {
       return {
         id: def.id,
         category: def.category,
+        tier: def.tier || 'white',
         icon: def.icon,
         kind: def.kind || 'metric',
         current,

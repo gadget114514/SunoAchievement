@@ -93,7 +93,7 @@
         const progress = Math.round(badge.progress * 100);
         const progressText = badge.kind === 'metric' || badge.kind === 'best' ? `${fmtNum(badge.current)} / ${fmtNum(badge.target)}` : '';
         return `
-          <article class="snap-badge ${badge.unlocked ? 'is-unlocked' : 'is-locked'}">
+          <article class="snap-badge ${badge.unlocked ? 'is-unlocked' : 'is-locked'}" data-category="${esc(badge.category)}" data-tier="${esc(badge.tier)}">
             <div class="snap-badge-head">
               <span class="snap-badge-icon"><svg class="icon"><use href="#ic-${badge.icon}"></use></svg></span>
               <h3>${esc(i18n.t(`badges.${badge.id}.name`))}</h3>

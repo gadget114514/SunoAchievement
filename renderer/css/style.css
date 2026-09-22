@@ -475,13 +475,89 @@ img[src=''] {
 }
 
 .badge {
+  --tint: var(--accent);
+  --tint-2: var(--accent-2);
+  --level: var(--line);
+  position: relative;
+  overflow: hidden;
   display: flex;
   gap: 10px;
   background: var(--card-2);
   border: 1px solid var(--line-soft);
   border-radius: 11px;
-  padding: 9px 11px;
+  padding: 9px 11px 9px 15px;
   transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.badge::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: var(--level);
+}
+
+.badge[data-tier='white'] {
+  --level: #eef1f8;
+}
+
+.badge[data-tier='bronze'] {
+  --level: #cd7f32;
+}
+
+.badge[data-tier='silver'] {
+  --level: #c3cad8;
+}
+
+.badge[data-tier='gold'] {
+  --level: #ffc247;
+}
+
+.badge[data-category='catalog'] {
+  --tint: #4d8dff;
+  --tint-2: #6f5bff;
+}
+
+.badge[data-category='plays'] {
+  --tint: #5fd44d;
+  --tint-2: #22c07a;
+}
+
+.badge[data-category='likes'] {
+  --tint: #ff5c8a;
+  --tint-2: #ff2d68;
+}
+
+.badge[data-category='tiers'] {
+  --tint: #ffc247;
+  --tint-2: #ff8a3d;
+}
+
+.badge[data-category='superlatives'] {
+  --tint: #b06bff;
+  --tint-2: #8a5cff;
+}
+
+.badge[data-category='time'] {
+  --tint: #4dc8ff;
+  --tint-2: #2f7cf6;
+}
+
+.badge[data-category='diversity'] {
+  --tint: #ff5cd0;
+  --tint-2: #b44dff;
+}
+
+.badge[data-category='community'] {
+  --tint: #7c8cff;
+  --tint-2: #5566ff;
+}
+
+.badge[data-category='gem'] {
+  --tint: #2ee6c0;
+  --tint-2: #0fb8b8;
 }
 
 .badge:hover {
@@ -489,11 +565,11 @@ img[src=''] {
 }
 
 .badge.is-unlocked {
-  border-color: rgba(255, 138, 61, 0.4);
+  border-color: color-mix(in srgb, var(--tint) 45%, transparent);
 }
 
 .badge.is-unlocked .badge-icon {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  background: linear-gradient(135deg, var(--tint), var(--tint-2));
   color: #fff;
   border-color: transparent;
 }
@@ -503,7 +579,7 @@ img[src=''] {
 }
 
 .badge.is-locked .badge-icon {
-  color: var(--muted);
+  color: var(--tint);
 }
 
 .badge-icon {
@@ -608,7 +684,7 @@ img[src=''] {
   height: 100%;
   width: 0;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  background: linear-gradient(90deg, var(--tint), var(--tint-2));
 }
 
 .badge-progress-text {
