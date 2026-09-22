@@ -575,6 +575,7 @@ img[src=''] {
 }
 
 .badge.is-locked {
+  --level: #4a5164;
   opacity: 0.72;
 }
 
