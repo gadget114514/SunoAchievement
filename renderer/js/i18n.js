@@ -79,6 +79,10 @@ SA.i18n = (() => {
         import: 'Import JSON',
         snapshot: 'Save snapshot (.jpg)',
       },
+      web: {
+        import: 'Import JSON',
+        importHint: 'Drop a profile JSON here to build achievements. Get one from the desktop app or by running node scripts/scrape.js.',
+      },
       toast: {
         exported: 'Exported to {path}',
         imported: 'Imported profile data',
@@ -203,6 +207,10 @@ SA.i18n = (() => {
         export: 'JSONエクスポート',
         import: 'JSONインポート',
         snapshot: 'スナップショット保存 (.jpg)',
+      },
+      web: {
+        import: 'JSONを読み込む',
+        importHint: 'プロフィールJSONをここにドロップすると実績を表示します。JSONはデスクトップ版アプリか node scripts/scrape.js で作成できます。',
       },
       toast: {
         exported: '{path} にエクスポートしました',
@@ -329,6 +337,10 @@ SA.i18n = (() => {
         import: 'Importar JSON',
         snapshot: 'Guardar captura (.jpg)',
       },
+      web: {
+        import: 'Importar JSON',
+        importHint: 'Suelta aquí un JSON de perfil para generar los logros. Consíguelo con la app de escritorio o con node scripts/scrape.js.',
+      },
       toast: {
         exported: 'Exportado a {path}',
         imported: 'Datos del perfil importados',
@@ -454,6 +466,10 @@ SA.i18n = (() => {
         import: 'Importer JSON',
         snapshot: 'Enregistrer la capture (.jpg)',
       },
+      web: {
+        import: 'Importer JSON',
+        importHint: "Déposez ici un JSON de profil pour afficher les succès. Obtenez-le avec l'application de bureau ou via node scripts/scrape.js.",
+      },
       toast: {
         exported: 'Exporté vers {path}',
         imported: 'Données du profil importées',
@@ -578,6 +594,10 @@ SA.i18n = (() => {
         export: 'Экспорт JSON',
         import: 'Импорт JSON',
         snapshot: 'Сохранить снимок (.jpg)',
+      },
+      web: {
+        import: 'Импорт JSON',
+        importHint: 'Перетащите сюда JSON профиля, чтобы построить достижения. Его можно получить в настольном приложении или командой node scripts/scrape.js.',
       },
       toast: {
         exported: 'Экспортировано в {path}',

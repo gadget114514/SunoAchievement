@@ -11,7 +11,8 @@
     "start": "electron .",
     "dist": "electron-builder --win",
     "scrape": "node scripts/scrape.js",
-    "check": "node --check main.js && node --check preload.js && node --check lib/suno-core.js && node --check scripts/scrape.js && node --check renderer/js/config.js && node --check renderer/js/i18n.js && node --check renderer/js/achievements.js && node --check renderer/js/suno.js && node --check renderer/js/app.js && node --check renderer/js/snapshot.js"
+    "check": "node scripts/check.js",
+    "test": "node --test \"scripts/test/**/*.test.js\""
   },
   "build": {
     "appId": "com.gadget114514.sunoachievement",

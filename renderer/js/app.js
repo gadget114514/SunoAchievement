@@ -4,7 +4,9 @@
   const i18n = SA.i18n;
   const cfg = SA.config;
   const data = SA.data;
+  const platform = SA.platform;
   const { evaluate } = SA.achievements;
+  const { esc, fmtInt, fmtNum, fmtDate, fmtDuration, fmtClock } = SA.format;
 
   const LS = { lang: 'sa.lang', handle: 'sa.handle', sort: 'sa.sort' };
 
@@ -41,48 +43,10 @@
     ['title', 'songs.sortTitle'],
   ];
 
-  function esc(value) {
-    return String(value == null ? '' : value).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
-  }
-
-  function fmtInt(n) {
-    return new Intl.NumberFormat(i18n.locale()).format(Math.round(n || 0));
-  }
-
-  function fmtNum(n) {
-    const value = n || 0;
-    if (value >= 10000) {
-      return new Intl.NumberFormat(i18n.locale(), { notation: 'compact', maximumFractionDigits: 1 }).format(value);
-    }
-    return fmtInt(value);
-  }
-
-  function fmtDate(iso) {
-    if (!iso) return '';
-    try {
-      return new Intl.DateTimeFormat(i18n.locale(), { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(iso));
-    } catch {
-      return '';
-    }
-  }
-
-  function fmtDuration(seconds) {
-    if (!seconds) return '—';
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.round((seconds % 3600) / 60);
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
-  }
-
-  function fmtClock(seconds) {
-    if (!seconds) return '';
-    const minutes = Math.floor(seconds / 60);
-    const rest = Math.round(seconds % 60);
-    return `${minutes}:${String(rest).padStart(2, '0')}`;
-  }
-
   function cacheElements() {
     el.cacheSelect = document.getElementById('cache-select');
+    el.webImport = document.getElementById('web-import');
+    el.webImportBtn = document.getElementById('web-import-btn');
     el.langSelect = document.getElementById('lang-select');
     el.profileForm = document.getElementById('profile-form');
     el.profileInput = document.getElementById('profile-input');
@@ -118,6 +82,22 @@
   }
 
   function bindEvents() {
+    el.webImportBtn.addEventListener('click', () => importData());
+
+    el.webImport.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      el.webImport.classList.add('is-dragover');
+    });
+
+    el.webImport.addEventListener('dragleave', () => el.webImport.classList.remove('is-dragover'));
+
+    el.webImport.addEventListener('drop', (event) => {
+      event.preventDefault();
+      el.webImport.classList.remove('is-dragover');
+      const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+      if (file) importFile(file);
+    });
+
     el.profileForm.addEventListener('submit', (event) => {
       event.preventDefault();
       openProfile(el.profileInput.value);
@@ -328,6 +308,7 @@
   }
 
   async function refresh() {
+    if (!platform.isElectron) return;
     if (!state.handle) return;
     const currentHandle = state.handle;
     const seq = (refreshSeq += 1);
@@ -574,6 +555,18 @@
     }
   }
 
+  async function importFile(file) {
+    try {
+      const dataset = JSON.parse(await file.text());
+      if (!platform.isDataset(dataset)) throw Object.assign(new Error('invalid-json'), { code: 'invalid-json' });
+      applyData(dataset);
+      setStatus('updated', { date: fmtDate(dataset.fetchedAt) });
+      toast('toast.imported');
+    } catch {
+      toast('error.unknown', { message: 'import' });
+    }
+  }
+
   async function saveSnapshot() {
     if (!state.dataset) return;
     try {
@@ -589,14 +582,12 @@
   }
 
   async function init() {
-    if (!window.sunoApi) {
-      console.error('sunoApi bridge unavailable');
-      return;
-    }
+    document.body.classList.toggle('is-web', !platform.isElectron);
     cacheElements();
     i18n.set(localStorage.getItem(LS.lang) || i18n.detect());
     bindEvents();
     applyStaticText();
+    if (!platform.isElectron) return;
     const last = localStorage.getItem(LS.handle);
     if (last) {
       el.profileInput.value = last;
@@ -605,7 +596,7 @@
     refreshCacheOptions();
   }
 
-  window.SA.app = { init, openProfile, refresh, currentData: () => state.dataset };
+  window.SA.app = { init, openProfile, refresh, importFile, currentData: () => state.dataset };
 
   init();
 })();

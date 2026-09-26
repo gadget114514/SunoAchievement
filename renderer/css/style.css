@@ -942,3 +942,44 @@ img[src=''] {
     width: 100%;
   }
 }
+
+.web-import {
+  display: none;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
+  padding: 14px 18px;
+  background: var(--card);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+body.is-web .web-import {
+  display: flex;
+}
+
+body.is-web #profile-form,
+body.is-web #btn-refresh,
+body.is-web #cache-select,
+body.is-web #btn-snapshot {
+  display: none !important;
+}
+
+.web-import-icon {
+  width: 26px;
+  height: 26px;
+  color: var(--accent);
+}
+
+.web-import-hint {
+  flex: 1;
+  margin: 0;
+  color: var(--muted);
+}
+
+.web-import.is-dragover {
+  border-color: var(--accent);
+  background: var(--card-2);
+}
+

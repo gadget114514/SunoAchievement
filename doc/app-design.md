@@ -27,7 +27,7 @@ This spec is written so that another engineer or AI can implement it without ext
     - OFL fonts
 - **No bundler, no framework.** Plain browser scripts loaded with `<script src>`, in the same style as the existing code (§2).
 - **CSP stays strict:** `script-src 'self'`. There is no `eval` and no remote scripts. GLSL is kept in JS strings.
-- **Deterministic rendering.** `renderFrame(project, t)` depends only on `(project, t, loaded assets)`. All randomness uses a seeded RNG. The preview and the export must match pixel-for-pixel logically.
+- **Deterministic rendering.** `renderFrame(project, t)` depends only on `(project, t, loaded assets)`. All randomness uses a seeded RNG, and all value changes go through `SA.tween` (§6.2). Preview and export share the same code path and must match logically; a pixel-exact comparison is only required at the same quality and resolution.
 - **Every UI string goes through `SA.i18n`, in all 5 languages** (en, ja, es, fr, ru).
 
 ---
@@ -45,15 +45,15 @@ Use these terms in code (identifiers), UI (i18n keys), docs, and commits. Don't 
 | **Aspect** | アスペクト | `16:9` (1920×1080) or `9:16` (1080×1920). |
 | **Script** | スクリプト | The ordered list of Cues for the project, generated from the data or imported from SRT. |
 | **Cue** | キュー | One SRT entry: the original text plus start and end times. It is a container for Beats, §4.3. |
-| **Restructure** | 再構成 | Turning one Cue into Beats to fit its time: splitting, recap, repeats, emphasis, §7.18. |
+| **Restructure** | 再構成 | Turning one Cue into Beats to fit its time: splitting, recap, repeats, emphasis, §7.16. |
 | **Beat** | ビート | **The smallest display unit that gets effects.** It has its own text, time and style. Kinds: `single`, `page`, `recap`, `repeat`, `emphasis`. |
 | **Page** | ページ | A Beat of kind `page`: one piece of a Cue's text after splitting. |
 | **Recap** | 全文再表示 | A Beat of kind `recap`: the whole Cue text shown again after its Pages. |
 | **Repeat** | 再表示 | A Beat of kind `repeat`: the text shown again because the hold is long (`longHold`). |
 | **Emphasis** | 強調 | A Beat of kind `emphasis`: a short attention animation without leaving the screen. |
-| **Gap** | ギャップ／空白 | A stretch with no Cue (`intro`, `interlude`, `outro`), §7.15. |
+| **Gap** | ギャップ／空白 | A stretch with no Cue (`intro`, `interlude`, `outro`), §7.14. |
 | **Filler** | フィラー | What plays in a Gap: countdown, waveform, spectrum, shapes, and so on. A **Filler clip** is one Filler placed in one Gap. |
-| **Credits** | クレジット | The song title (作品名) and artist (作者) elements. Modes: `element` (shown once), `always` (always on screen), `end` (at the end), §7.16. |
+| **Credits** | クレジット | The song title (作品名) and artist (作者) elements. Modes: `element` (shown once), `always` (always on screen), `end` (at the end), §7.15. |
 | **Pinned** | 固定 | A Beat or Filler clip edited by hand. Regenerating or restructuring keeps it. |
 | **Orphan** | 孤立編集 | An override or keyframe whose target no longer exists after a text edit. |
 
@@ -80,6 +80,7 @@ Use these terms in code (identifiers), UI (i18n keys), docs, and commits. Don't 
 | **Preset** | プリセット | A named StyleSet, partial or full. |
 | **MotionDef** | モーション定義 | Timing shared by all groups: `in` / `out` (duration, delay, ease), `stagger`, and `loop`, §4.4. |
 | **Ease / Easing** | イージング | A curve from 0..1 to 0..1 (easeOutBack, spring, steps, cubic-bezier, and others). |
+| **Tween** | トゥイーン／補間 | Interpolating a value from A to B with an Ease. **Every** motion (all 11 groups, keyframes, formation blends, color transitions, layer/filler/credit motion) runs through the tween system, §6.2. |
 | **Ease-in / Ease-out** (fields `in.ease` / `out.ease`) | イン／アウトのイージング | The curves for the start (in) and end (out) phases of a group. Not the same thing as the easing *names* `easeIn…` / `easeOut…`. |
 | **Stagger** | スタッガー | Offsetting each letter's start time according to an order (ltr, center-out, random, …). |
 | **Envelope** | エンベロープ | A 0..1 intensity of a persistent group over time, made from `in` and `out`. |
@@ -97,12 +98,12 @@ Use these terms in code (identifiers), UI (i18n keys), docs, and commits. Don't 
 ### Rendering and output
 | Term | 日本語 | Definition |
 |---|---|---|
-| **Layer** | レイヤー | A media layer in the `background` or `foreground` zone (video, image, card, solid, noise), §7.14. |
+| **Layer** | レイヤー | A media layer in the `background` or `foreground` zone (video, image, card, solid, noise), §7.11. |
 | **Lyrics layer** | 歌詞レイヤー | The transparent layer where Beats, Fillers and Credits are drawn. |
 | **Pass** | パス | One GPU rendering step: text, SDF, fill, edge, post, bloom, composite. |
 | **Target** (post) | 対象 | `text` (only the lyrics layer) or `frame` (the whole frame). |
 | **SDF** | 距離場 | The signed distance field of the text mask (computed by jump flooding). |
-| **Cost / Budget** | 負荷／予算 | GPU weight units per effect, and the per-frame limit in the preview (24), §15. |
+| **Cost / Budget** | 負荷／予算 | GPU weight units per effect, and the per-frame limit in the preview (24), §14. |
 | **Max duration** | 最大時間 | The user's upper limit on video length. **Overflow** (超過処理) is compress, drop, or cut, §7.17. |
 | **Preview scale** | プレビュー倍率 | The reduced render resolution in the preview. |
 | **Transparent export** | 透過書き出し | Output with alpha: VP9-alpha WebM or a PNG sequence. |
@@ -182,13 +183,13 @@ SA.foo = (() => {
   return { /* api */ };
 });
 ```
-The pure modules are: `easing`, `rng`, `color`, `srt`, `script-gen`, `layout`, `motion`, `geometry`, `effects/registry`, and `project`. They must not touch the DOM, `window`, or WebGL.
+The pure modules are: `easing`, `tween`, `rng`, `color`, `srt`, `script-gen`, `layout`, `motion`, `geometry`, `effects/registry`, and `project`. They must not touch the DOM, `window`, or WebGL.
 
 **Other conventions:**
 - 2-space indent, single quotes, semicolons, `const`/`let`, no classes unless they clearly help. Small named functions, following the existing style.
 - Errors are coded, like `Object.assign(new Error('msg'), { code: 'x' })`, and IPC replies use the `{ok, data|error}` shape (see `main.js` `ok`/`fail`).
 - Replace the `check` script with `scripts/check.js`, which runs `node --check` over every `.js` in `lib/`, `scripts/`, and `renderer/js/`, and skips `renderer/vendor/`.
-- Tests use Node's built-in runner: `node --test scripts/test/`. Add `"test": "node --test scripts/test/"` to `package.json`.
+- Tests use Node's built-in runner: `node --test "scripts/test/**/*.test.js"`. Add `"test": "node --test \"scripts/test/**/*.test.js\""` to `package.json` (a plain directory argument is broken on Node 24 + Windows).
 
 ---
 
@@ -200,7 +201,7 @@ preload.js                      EDIT  expose new IPC
 package.json                    EDIT  scripts: check, test, vendor; devDeps: mp4-muxer, webm-muxer, opentype.js, earcut
 scripts/check.js                NEW
 scripts/vendor.js               NEW   copies vendor UMD builds + fonts into renderer/vendor, renderer/fonts
-scripts/test/*.test.js          NEW   easing, rng, color, srt, script-gen, layout, motion, geometry, project
+scripts/test/*.test.js          NEW   easing, tween, rng, color, srt, script-gen, layout, motion, geometry, project, textflow, fillers, credits, audio-analysis, duration
 .github/workflows/pages.yml     NEW
 renderer/
   index.html                    EDIT  web mode, "Open Studio" button, CSP
@@ -219,19 +220,26 @@ renderer/
   js/script-gen.js              NEW   §5.5
   js/color.js                   NEW   §5.6
   js/lyrics/rng.js              NEW   §6.1
-  js/lyrics/easing.js           NEW   §6.2
+  js/lyrics/easing.js           NEW   §6.2 (≥ 30 tween curves)
+  js/lyrics/tween.js            NEW   §6.2 (value interpolation used by all motion)
   js/lyrics/font.js             NEW   §6.3
   js/lyrics/geometry.js         NEW   §6.4
   js/lyrics/scene.js            NEW   §6.5
   js/lyrics/layout.js           NEW   §6.6
   js/lyrics/motion.js           NEW   §6.7
+  js/lyrics/textflow.js         NEW   §7.16 (restructure → beats)
+  js/lyrics/fillers.js          NEW   §7.14 (gap fillers)
+  js/lyrics/audio-analysis.js   NEW   §7.14 (FFT, waveform, determinism)
+  js/lyrics/credits.js          NEW   §7.15 (title / artist elements)
+  js/lyrics/duration.js         NEW   §7.17 (max duration, overflow)
   js/lyrics/effects/registry.js NEW   §7 (descriptors + CPU-side effect functions)
   js/lyrics/effects/*.js        NEW   one file per group: animation, layout, enter, exit, hold, location, fill, edge, post, background, color
-  js/lyrics/presets.js          NEW   §7.12
+  js/lyrics/presets.js          NEW   §7.13
   js/lyrics/gl/context.js       NEW   §8
   js/lyrics/gl/shaders.js       NEW   §8 (all GLSL as strings)
   js/lyrics/gl/passes.js        NEW   §8
   js/lyrics/gl/sdf.js           NEW   §8.4
+  js/lyrics/gl/shapes.js        NEW   §7.14 (rounded rects, circles, rings, polylines for fillers)
   js/lyrics/engine.js           NEW   §8.6 renderFrame
   js/lyrics/canvas2d-fallback.js NEW  §8.7
   js/video-export.js            NEW   §9
@@ -300,6 +308,12 @@ A file is valid when `Array.isArray(songs) && profile` (the same check as in `ma
 ```
 `duration` may also be a string like `'40%'`, meaning a fraction of the cue length. It is resolved when the scene is built.
 
+**Tween guarantee.** Every field above runs through `SA.tween` (§6.2); no ad-hoc interpolation anywhere:
+- `ease`, `stagger.ease` and `loop.ease` accept any of the **33 named curves** (≥ 30 required), plus `cubic-bezier(a,b,c,d)`, `spring(k,c,m)`, `steps(n,dir)` and `hold`.
+- The same tween functions drive Enter/Exit progress, hold envelopes, layout formation blends, `layout.sequence`, keyframes, color transitions and layer/filler/credit motion, so one ease behaves identically in every group.
+- Tween value kinds: `number`, `int`, `vec2`, `vec3`, `color`, `gradient`, `points`, `bool`, `step`.
+- Any param whose kind is `number`, `int`, `vec2` or `color` (including effect params, §7) can be keyframed, and is therefore tweenable.
+
 **What in/out mean for each group:**
 
 | Group | `in` | `out` |
@@ -332,15 +346,15 @@ Layout is special: the `in` progress moves letters from the start formation to t
   style: StyleSet,                        // project-level default style
   styleMode: { order: 'fixed'|'cycle'|'random', seed: 12345, locked: ['layout', ...] },
   cueStyles: { [cueId]: StyleSet /*partial*/ },
-  beatKindStyle: { page, recap, repeat, emphasis, single: StyleSet /*partial*/ },   // §7.18
+  beatKindStyle: { page, recap, repeat, emphasis, single: StyleSet /*partial*/ },   // §7.16
   beats: { [cueId]: Beat[] },            // result of restructuring; pinned beats come from manual edits
   beatStyles: { [beatId]: StyleSet /*partial*/ },
   overrides: { [elementPath]: { [propPath]: value } },
   keyframes: { [elementPath]: { [propPath]: [{ t /*s, cue-relative*/, value, ease }] } },
   markers: [{ t, label }],
-  layers: Layer[],           // background and foreground media, §7.14; the lyrics layer sits between them
-  fillers: FillerSettings,   // §7.15 what plays in gaps with no cue
-  credits: CreditSettings    // §7.16 song title / artist elements
+  layers: Layer[],           // background and foreground media, §7.11; the lyrics layer sits between them
+  fillers: FillerSettings,   // §7.14 what plays in gaps with no cue
+  credits: CreditSettings    // §7.15 song title / artist elements
 }
 ```
 
@@ -389,9 +403,19 @@ Layout is special: the `in` progress moves letters from the start formation to t
 - `{ kind: 'palette', paletteId, index }`
 - `{ kind: 'category', which: 'tint'|'tint2' }`
 
-**elementPath** grammar:
-- The beat segment is always present below a cue: `cue:<cueId>/beat:<beatId>/…` (§7.18). A cue that fits without splitting has one beat of kind `single`. The page and recap paths used in §7.18 are beats: `beat:<cueId>:page1`, `beat:<cueId>:recap0`.
-- Full forms: `cue:<cueId>` · `cue:<cueId>/line:<i>` · `cue:<cueId>/line:<i>/word:<j>` · `cue:<cueId>/line:<i>/word:<j>/letter:<k>`. Letter indices are grapheme indices within their word.
+**elementPath** grammar (canonical):
+- A cue that fits without splitting has exactly one beat of kind `single`.
+- `beatId` = `<cueId>:<kind><index>`, e.g. `c1:single0`, `c1:page1`, `c1:recap0`.
+- Below a cue, every path goes through the beat: `cue:<cueId>/beat:<beatId>/…`.
+- Full forms:
+  - `cue:<cueId>`
+  - `cue:<cueId>/beat:<beatId>`
+  - `cue:<cueId>/beat:<beatId>/line:<i>`
+  - `cue:<cueId>/beat:<beatId>/line:<i>/word:<j>`
+  - `cue:<cueId>/beat:<beatId>/line:<i>/word:<j>/letter:<k>`
+- Credits use the same grammar under their own root: `credit:element/…`, `credit:always/…`, `credit:end/…` (each with `beat:<beatId>`).
+- Media layers are addressed as `layer:<id>`.
+- Letter indices are grapheme indices within their word.
 
 **propPath** examples:
 - `transform.x`, `transform.y` (px @ output resolution)
@@ -405,10 +429,10 @@ Layout is special: the `in` progress moves letters from the start formation to t
 **Resolution order** (`project.resolveStyle(elementPath)`): each later layer overrides the earlier one:
 
 ```
-project.style → preset/random layer (stored in cueStyles) → cueStyles[cue] → overrides[cue] → overrides[line] → overrides[word] → overrides[letter]
+project.style → cueStyles[cueId] → beatKindStyle[beat.kind] → beatStyles[beatId] → overrides[cue] → overrides[beat] → overrides[line] → overrides[word] → overrides[letter]
 ```
 
-Keyframes are applied after all of that (§6.7).
+`cueStyles[cueId]` holds the cue-scope preset/random layer, and `beatStyles[beatId]` holds the beat-scope one (manual edits, random style, presets). Keyframes are applied after all of that (§6.7).
 
 **Migration:** `project.migrate(obj)` upgrades older `version`s. Unknown fields are kept.
 
@@ -424,6 +448,7 @@ isElectron: boolean                                  // typeof window.sunoApi ==
 fetchProfile(handle, onProgress) → Promise<Dataset>  // Electron only; web → rejects {code:'unsupported'}
 cache: { list, load, remove }                        // Electron only; web → [] / null / false
 importJson() → Promise<{canceled, data}>             // Electron: existing cache:import; web: <input type=file accept=".json,application/json">
+readAsset(path) → Promise<ArrayBuffer>               // same-origin asset (fonts): web → fetch(); Electron → IPC asset:read
 readFile(accept) → Promise<{name, type, bytes: ArrayBuffer}|null>   // generic picker (audio/image/font/srt)
 saveFile({ bytes|blob, name, mime, filters }) → Promise<{canceled, filePath?}>
 openStream({ name, mime, filters }) → Promise<{ write(Uint8Array, position?), close(), abort() }|null>  // for large video
@@ -478,7 +503,7 @@ Move these out of `app.js`/`snapshot.js` without changing behavior: `esc`, `fmtI
 
 ### 5.4 `js/srt.js` → `SA.srt` (pure)
 ```js
-parse(text) → Cue[]            // also returns warnings via parse.lastWarnings
+parse(text) → { cues: Cue[], warnings: [{ code, line, message }] }   // pure; never mutates shared state
 stringify(cues, { includeFx = false }) → string
 formatTime(sec) → '00:01:02,345'; parseTime('00:01:02,345' | '00:01:02.345' | '1:02.3') → sec
 stripTags(text) → { plain, spans }
@@ -498,7 +523,7 @@ stripTags(text) → { plain, spans }
 - **Tags:** `<b>`, `<i>`, `<u>` and `<font color="#hex">` become `spans`. Everything else is stripped.
 - **Line-break escapes** inside cue text (the same rule applies to credits, fillers and inspector text input):
   - `\N` and a literal `\n` → forced line break
-  - `\P` → forced page break (§7.18)
+  - `\P` → forced page break (§7.16)
   - `\h` → non-breaking space
   - `<br>` → line break
   - Real newlines in the SRT are also line breaks.
@@ -554,28 +579,78 @@ fitToDuration(cues, duration) → Cue[]   // scales starts/ends linearly, keeps 
 - `rngFor(seed, ...path)` = `mulberry32(hash32(seed, ...path))`. Use one per element, for example `rngFor(seed, cueId, 'letter', k, 'enter')`, so that changing one element's randomness never changes another's.
 - Helpers: `range(r, a, b)`, `pick(r, arr)`, `gauss(r)`.
 
-### 6.2 `lyrics/easing.js`
-Export `get(name) → (t: 0..1) → number`, `names`, `cubicBezier(x1, y1, x2, y2)`, `spring({ stiffness = 170, damping = 26, mass = 1 })`, `steps(n, 'start'|'end')`, and `parse(str)`.
+### 6.2 `lyrics/easing.js` + `lyrics/tween.js`
+#### Easing
+Export `get(name) → (t: 0..1) → number`, `names`, `cubicBezier(x1, y1, x2, y2)`, `spring({ stiffness = 170, damping = 26, mass = 1 })`, `steps(n, 'start'|'end')`, `hold()`, and `parse(str)`.
 
 `parse` accepts:
 - a name
 - `'cubic-bezier(a,b,c,d)'`
 - `'spring(170,26,1)'`
 - `'steps(4,end)'`
+- `'hold'` (no interpolation; switches at the end)
 
-**Curves:** `linear`, then In/Out/InOut for Quad, Cubic, Quart, Quint, Sine, Expo, Circ, Back (s = 1.70158), Elastic (period 0.3), Bounce. Write the formulas by hand.
+**33 named curves (the minimum is 30, and `names.length ≥ 30` is asserted in tests):**
+
+| # | Curve |
+|---|---|
+| 1 | `linear` |
+| 2–4 | `quadIn`, `quadOut`, `quadInOut` |
+| 5–7 | `cubicIn`, `cubicOut`, `cubicInOut` |
+| 8–10 | `quartIn`, `quartOut`, `quartInOut` |
+| 11–13 | `quintIn`, `quintOut`, `quintInOut` |
+| 14–16 | `sineIn`, `sineOut`, `sineInOut` |
+| 17–19 | `expoIn`, `expoOut`, `expoInOut` |
+| 20–22 | `circIn`, `circOut`, `circInOut` |
+| 23–25 | `backIn`, `backOut`, `backInOut` (s = 1.70158) |
+| 26–28 | `elasticIn`, `elasticOut`, `elasticInOut` (period 0.3) |
+| 29–31 | `bounceIn`, `bounceOut`, `bounceInOut` |
+| 32 | `smoothstep` |
+| 33 | `smootherstep` |
+
+Plus the parameterized forms `cubic-bezier(a,b,c,d)`, `spring(k,c,m)`, `steps(n,dir)` and `hold`, which all count as tween types too. Write the formulas by hand.
 
 **`cubicBezier`:** solve x→t with Newton-Raphson (8 iterations), falling back to bisection (up to 20 iterations), with epsilon 1e-6.
 
 **`spring`:** analytic damped harmonic oscillator. Settle time T is when the envelope drops below 0.001, and the function is normalized so that f(1) = 1 exactly (evaluate at t·T, then `f(1)` snaps to 1).
 
+#### Tween
+`tween.js` is the single place that interpolates values. All motion in the app uses it:
+
+```js
+value(kind, a, b, p, ease) → tweened value       // p is raw 0..1; ease is applied inside
+segment({ kind, keys }, t) → value                // keys = [{ t, value, ease }]; before the first key → first value; after the last → last value; inside → the ease of the starting key
+```
+
+**Value kinds:** `number`, `int` (rounded), `vec2`, `vec3`, `color` (via `SA.color.lerpColorValue`, OKLab), `gradient`, `points` (pairwise; resampled if the counts differ), `bool` (switch at p ≥ 0.5), `step` (switch at p = 1).
+
+**What is tweened (motion全般):**
+
+| Consumer | Tweened value | Ease |
+|---|---|---|
+| Animation / `MotionDef.in`, `.out` | progress 0→1 | `in.ease` / `out.ease` |
+| Stagger | per-letter start offsets | `stagger.ease` |
+| Loop | hold-phase wrapping | `loop.ease` |
+| Layout | start formation → target, `sequence` changes, `to` formation | `in.ease`, `out.ease`, per-sequence `ease` |
+| Enter / Exit | effect progress `pe` / `px` | `in.ease` / `out.ease` |
+| Hold | hold-local params, deformation amount | `loop.ease`, envelope |
+| Location | anchor movement, `stacked` shift | `in.ease` |
+| Fill / Edge / Post / Background | intensity envelope, shader params | group `in` / `out` |
+| Color | fills, gradients, strokes, glows | `in.ease` + OKLab blend |
+| Keyframes | any keyframed property | the starting key's `ease` |
+| Layers / Fillers / Credits | their own `MotionDef` | same rules |
+
+A tween is a pure function of `(kind, a, b, p, ease)`; it never reads wall-clock time, so preview and export stay identical.
+
 **Tests:**
 - `f(0) = 0` and `f(1) = 1` for every curve (tolerance 1e-6).
+- `names.length ≥ 30`; every name resolves through `parse`.
 - `cubicBezier(.25, .1, .25, 1)(0.5)` ≈ 0.8024 (±1e-3).
 - InOut curves are symmetric.
+- `value('number', 10, 20, 0.5, 'linear') === 15`; `segment` clamps before the first and after the last key; color tweens match OKLab blending.
 
 ### 6.3 `lyrics/font.js` → `SA.lyricsFont`
-- **Built-in fonts:** `load(fontId)` fetches from `fonts/` (`fetch()` is allowed for same-origin files; add `connect-src 'self'` to the studio CSP), then `opentype.parse(arrayBuffer)`, then caches the result.
+- **Built-in fonts:** `load(fontId)` gets the bytes through `SA.platform.readAsset(path)`, then `opentype.parse(arrayBuffer)`, then caches the result. On the web build `readAsset` uses `fetch()` (same origin; add `connect-src 'self'` to the studio CSP). In Electron the page is `file://`, where `fetch()` is blocked, so `readAsset` uses the IPC `asset:read` (§11.1) and returns the same bytes.
   - `NotoSans-Regular`, `NotoSans-Bold` (Latin, Cyrillic, Greek)
   - `NotoSerif-Regular`
   - `NotoSansJP-Regular`, `NotoSansJP-Bold` (loaded only when the text has CJK characters: `/[　-鿿＀-￯]/`)
@@ -616,11 +691,11 @@ Export `get(name) → (t: 0..1) → number`, `names`, `cubicBezier(x1, y1, x2, y
 - **Cache:** results are cached per `(fontId, glyphIndex, size bucket)`. Size bucket = `round(log2(size) × 4)`. Geometry is made at the bucket size and scaled to the real size.
 
 ### 6.5 `lyrics/scene.js` → `buildScene(project, beat, fonts)`
-Scenes are built **per Beat** (§7.18); the old word "CueScene" means **BeatScene**. The result is immutable and cached by `hash(beat.text, beat.lines, resolved text style, output aspect, fonts)`. Letter paths include the beat: `cue:x/beat:y/line:0/…`.
+Scenes are built **per Beat** (§7.16); the old word "CueScene" means **BeatScene**. The result is immutable and cached by `hash(beat.text, beat.lines, resolved text style, output aspect, fonts)`. Letter paths include the beat: `cue:x/beat:y/line:0/…`.
 ```js
 {
-  cueId, start, end, lines: [...], words: [...], letters: [{
-    path: 'cue:x/line:0/word:1/letter:2', lineIdx, wordIdx, letterIdx, globalIdx, char,
+  cueId, beatId, start, end, lines: [...], words: [...], letters: [{
+    path: 'cue:x/beat:x:page1/line:0/word:1/letter:2', lineIdx, wordIdx, letterIdx, globalIdx, char,
     local: { x, y, w, h, cx, cy },           // from layoutText, relative to the text-block origin
     mesh:  { fill: {positions, indices}, stroke: {...}, pieces: {...}, needsStencil },   // lazily built
     samples: { interior: Float32Array, outline: Float32Array },                           // lazily built, 64..512 points by area
@@ -663,7 +738,7 @@ Letters are the smallest unit that gets a transform. "Parts of a letter" (contou
 | `depth` | Same x and y as the target, z = −8 (drawn with perspective scaling, so letters come from far away). |
 | `mirror` | Mirrored across the center. |
 | `formation:<type>` | Starts in another formation, e.g. `formation:circle`. This is the "builds up into a row" case. |
-| `previousCue` | Starts where the previous cue's letter with the same index was at its end time (the previous cue's last CPU state is cached). Extra letters use `point`. |
+| `previousCue` | Starts where the previous beat's letter with the same index was at its end time. The previous beat is **re-evaluated at its end time** on demand (never read from the last rendered frame), so seeking backwards gives the same result. Extra letters use `point`. |
 
 **Path from start to target:** a quadratic bezier from S to T.
 - Control point = midpoint + perpendicular × `curve` × |T − S|. The direction is `curveDir`: `left`, `right`, `alternate`, or `random`.
@@ -682,9 +757,9 @@ Letters are the smallest unit that gets a transform. "Parts of a letter" (contou
   deform: { type, amount, params }[], represent: 'mesh'|'stroke'|'particles'|'pieces', reprProgress, colorMix, fx: {...shader per-letter params} }
 ```
 
-`evaluateCue(scene, t, ctx) → { letters: LetterState[], envelopes: { groupName: 0..1 }, active: bool }`
+`evaluateBeat(beatScene, t, ctx) → { letters: LetterState[], envelopes: { groupName: 0..1 }, active: bool }`
 
-**Algorithm, per letter i:**
+**Algorithm, per letter i** (all interpolation goes through `SA.tween` / `SA.easing`, §6.2):
 1. `local = t − cue.start`, `dur = cue.end − cue.start`.
 2. **Stagger offsets** (Animation group, `motion.stagger`):
    1. `rank_i` depends on `order`:
@@ -740,6 +815,7 @@ SA.fx.register({
 - **Param kinds:** `number`, `int`, `select`, `bool`, `color` (a ColorValue), `vec2`, `ease`, `points`, `font`.
 - **The inspector (§10.6) and random generation (§10.9) are driven entirely by these descriptors.**
 - Every group also has the MotionDef (§4.4) with `in` and `out` easing.
+- Params of kind `number`, `int`, `vec2` and `color` are keyframable and therefore tweenable (§6.2); any `ease` param accepts any of the 33 named curves or the parametric forms.
 
 ### 7.1 Animation (timing across letters)
 | type | params | Effect |
@@ -895,10 +971,10 @@ Default is `text`. Effects with a † are shown in the UI as "featured".
 - `sdfGradient`
 - `blend` modes
 
-**Performance options:** effects that render the text pass several times (motionBlur, echoTrail) have a `cost` weight in their descriptor (§15).
+**Performance options:** effects that render the text pass several times (motionBlur, echoTrail) have a `cost` weight in their descriptor (§14).
 
 ### 7.10 Background (per-cue background treatment)
-This controls the **card camera and treatment per cue**. The media underneath comes from the layers (§7.14).
+This controls the **card camera and treatment per cue**. The media underneath comes from the layers (§7.11).
 
 | type | params |
 |---|---|
@@ -909,7 +985,7 @@ This controls the **card camera and treatment per cue**. The media underneath co
 | solid | color, alpha |
 | image | imageId, fit (cover/contain), blur, dim |
 
-### 7.14 Layers: background video/image, foreground image, transparency
+### 7.11 Layers: background video/image, foreground image, transparency
 **Stack, back to front:**
 1. background layers (video, image, card, solid, noise) in order
 2. the per-cue Background treatment
@@ -935,8 +1011,8 @@ This controls the **card camera and treatment per cue**. The media underneath co
 **Transparent output:**
 - **Output → Export video** has **Background: include / transparent**. With transparent, the background layers and card are skipped.
 - **Transparent export formats:**
-  1. **WebM VP9 with alpha:** `VideoEncoder` config with `alpha: 'keep'`, then `webm-muxer` with alpha side data. Only if `isConfigSupported` says yes.
-  2. **PNG sequence:** a `.zip` written by a small in-house store-only zip writer (CRC32, no compression). This always works.
+  1. **WebM VP9 with alpha (best-effort):** `VideoEncoder` config with `alpha: 'keep'`. Offer this only when `isConfigSupported({ alpha: 'keep' })` says yes **and** the muxer can carry alpha side data; plain `webm-muxer` does not, so expect this to be unavailable in v1. Never make it a required acceptance check.
+  2. **PNG sequence (guaranteed):** a `.zip` written by a small in-house store-only zip writer (CRC32, no compression). This always works.
   - MP4 H.264 has no alpha, so it isn't offered in transparent mode.
 - **Output → Save frame (PNG with alpha)** at the playhead.
 - **Preview** shows a checkerboard behind transparent areas (View → Transparency grid).
@@ -947,12 +1023,12 @@ This controls the **card camera and treatment per cue**. The media underneath co
 - Timeline: **Foreground layers** rows above the cue track, and **Background layers** rows below it. Clips can be dragged, trimmed and reordered, with lock and eye toggles.
 - Inspector: select a layer (in the timeline or by clicking the preview with Alt) → Layer sections: Source, Time (start/end/trim/speed/loop), Fit and Transform, Opacity and Blend, Filters, Motion in/out.
 
-### 7.11 Color group
+### 7.12 Color group
 Not its own shader, but a group in the inspector. It edits `StyleSet.color` (ColorSet §4.5) and holds the "category color" and "palette" switches.
 
 **Envelope:** `color.params.transition = { from: ColorSet|null }` blends from the previous cue's colors with the `in` ease.
 
-### 7.12 Presets (`lyrics/presets.js`)
+### 7.13 Presets (`lyrics/presets.js`)
 Each preset is a partial StyleSet with original names and values:
 
 | Preset | Layout | Enter | Hold | Exit | Fill | Edge | Post | Background |
@@ -974,7 +1050,7 @@ Each preset is a partial StyleSet with original names and values:
 
 ---
 
-### 7.15 Gap fillers: what plays when no cue is showing (`lyrics/fillers.js`)
+### 7.14 Gap fillers: what plays when no cue is showing (`lyrics/fillers.js`)
 An SRT has stretches with no text: before the first line, between lines, and after the last line. The engine computes these **gaps** and fills them automatically. Each filled gap becomes a **filler clip** on its own timeline track, and you can edit it.
 
 **Finding gaps:** `gaps(cues, duration)` returns `[{ from, to, kind: 'intro'|'interlude'|'outro', prevCueId, nextCueId }]`.
@@ -1008,7 +1084,7 @@ FillerSpec = { type, params, motion: MotionDef, color: ColorSet, layer: 'lyrics'
 | nextLinePreview | opacity (0.35), style | Shows the next cue's text faded, as a karaoke-style "coming up" line. |
 | previousLineGhost | opacity, blur | The previous line stays on screen faintly. |
 | progress | style (`bar`, `ring`), position | Overall song progress. |
-| credits | — | Shows the title/artist element during the gap (§7.16). |
+| credits | — | Shows the title/artist element during the gap (§7.15). |
 | cardPeek | zoom, pan | Pans across the achievement card between cues. |
 | instrumental | text (i18n `studio.filler.instrumental`, e.g. "♪ Instrumental ♪"), plus any hold effect | A labeled interlude. |
 | combo | list of FillerSpec | Draws several together, e.g. spectrum plus countdown. |
@@ -1034,7 +1110,7 @@ FillerSpec = { type, params, motion: MotionDef, color: ColorSet, layer: 'lyrics'
 - Right-click: change type ▸ · Unpin (back to auto) · Apply to all gaps of this kind.
 - Generate → Random style also randomizes filler types, except pinned ones and locked groups.
 
-### 7.16 Song title and artist elements (`lyrics/credits.js`)
+### 7.15 Song title and artist elements (`lyrics/credits.js`)
 **Title** (作品名) and **artist** (作者) are real text elements. They use the same vector/shader engine and StyleSet, and can be selected, edited and keyframed like any cue.
 
 **CreditSettings:**
@@ -1065,7 +1141,7 @@ FillerSpec = { type, params, motion: MotionDef, color: ColorSet, layer: 'lyrics'
   - The timeline shows a **Credits** track: element and end clips as blocks, and `always` as a long bar that can be trimmed.
 - **i18n:** `studio.credits.*`.
 
-### 7.18 Restructuring: SRT line → beats → effects per beat (`lyrics/textflow.js`, pure)
+### 7.16 Restructuring: SRT line → beats → effects per beat (`lyrics/textflow.js`, pure)
 This is the core idea of the whole video engine:
 
 ```
@@ -1106,7 +1182,7 @@ project.style → cueStyles[cue] → beatKindStyle[kind] → beatStyles[beatId] 
   - Generate → Random style → **Selected beats**.
   - Locks per group still apply.
   - `avoidRepeats` also compares with the previous beat.
-- **Motion:** `motion.evaluateCue` becomes `evaluateBeat(beatScene, t)`. Everything in §6.7 (the enter/exit windows, stagger, envelopes) uses **the beat's** start and end. Transitions between beats of the same cue follow `pageTransition` and `recap.transition`, and the Layout `previousCue` start becomes "previous beat".
+- **Motion:** `motion.evaluateCue` becomes `evaluateBeat(beatScene, t)`. Everything in §6.7 (the enter/exit windows, stagger, envelopes) uses **the beat's** start and end and the beat's tween curves (§6.2). Transitions between beats of the same cue follow `pageTransition` and `recap.transition`, and the Layout `previousCue` start becomes "previous beat".
 
 **Editing beats by hand:**
 - **Timeline:** the cue block is split into **beat sub-blocks**. You can:
@@ -1172,7 +1248,7 @@ textFlow: {
   - inside hyphenated words or URLs
 - Avoid a single-word last line: add a large penalty when fewer than 2 words are left over.
 
-**es/fr/ru:** the same approach with their own lists of function words and conjunctions. French and Russian lists should be written by someone who knows the language. French also keeps the space before `: ; ! ?` together with the punctuation.
+**es/fr/ru:** in v1, use the fallback below (word boundaries plus punctuation penalties). Their own function-word and conjunction lists, and French keeping the space before `: ; ! ?` with the punctuation, are a later refinement.
 
 **Other languages:** fallback to word boundaries plus punctuation penalties.
 
@@ -1197,7 +1273,7 @@ cueDur × w_i / Σw,   where w_i = readingTime(page_i) + 0.3 s
 - `hold`: stays as is (current behavior).
 - **`repeat`:** every `interval` seconds, the element plays its exit and then **enters again**. With several pages, the page sequence starts over from page 1. `repeatEffect` = `cycle`/`random` picks a different enter/exit each time, using the per-element RNG, so it stays deterministic.
 - `pulse`: a short emphasis animation (a scale pulse plus the lightSweep shader) every `interval`, without leaving the screen.
-- `filler`: the text exits early and the rest of the time becomes a gap filler (§7.15), treated as an interlude.
+- `filler`: the text exits early and the rest of the time becomes a gap filler (§7.14), treated as an interlude.
 
 The repeats are visible in the timeline as tick marks inside the cue block.
 
@@ -1253,7 +1329,7 @@ You can set the **maximum video length**.
 min(maxDuration ?? ∞, natural length)
 ```
 
-where the natural length follows `durationMode`, and includes the credits end card (§7.16).
+where the natural length follows `durationMode`, and includes the credits end card (§7.15).
 
 **When content is longer than the maximum** (`output.overflow`):
 - **`compress`** (default for generated scripts): scales every cue, gap and keyframe in time to fit (`fitToDuration`, §5.5).
@@ -1303,7 +1379,7 @@ where the natural length follows `durationMode`, and includes the credits end ca
 - **Render targets:** `textRT` (RGBA8 color + an R8 mask via MRT, plus an RGBA16F `infoRT` holding letter id, u, v and fx), `sdfA`/`sdfB` (RG16F, half resolution), `sceneRT`, `postA`/`postB`, and `bloom` mip chain × 5.
 
 ### 8.3 Pipeline, per frame
-The overall compositing order follows the layer stack in §7.14:
+The overall compositing order follows the layer stack in §7.11:
 
 ```
 background layers → cue Background → lyricsRT (transparent) → foreground layers → frame post → output
@@ -1313,7 +1389,7 @@ When the export is transparent, the background steps are skipped and the output 
 
 1. **Background pass:** draw the background into `sceneRT`. The card texture is uploaded once per theme or aspect change, from `SA.card.draw` on an `OffscreenCanvas`, then sampled with a camera transform and a separable Gaussian blur.
 2. **For each active cue**, in order of start time:
-   1. CPU: `motion.evaluateCue` fills the state textures.
+   1. CPU: `motion.evaluateBeat` fills the state textures.
    2. **Text pass:** draw the meshes for each representation into `textRT` + `infoRT`:
       - fill mesh: `mesh`
       - stroke ribbon: `stroke` (a fragment is discarded if `a_s > visibleFrac`)
@@ -1357,7 +1433,7 @@ engine.resize(width, height)
 engine.dispose()
 ```
 - Only cues with `start − maxLead ≤ t ≤ end + maxTail` are active. `maxLead` and `maxTail` default to 0; the exit and morph handovers fit inside each cue's own time.
-- `stacked` layouts and `previousCue` starts also read the previous cue's cached last state.
+- `stacked` layouts and `previousCue` starts also evaluate the previous beat at its end time (deterministic; see §6.6).
 - The engine is used by three consumers: preview (canvas in the page), export (OffscreenCanvas at full resolution), and thumbnails in the Media panel.
 
 ### 8.7 Canvas 2D fallback
@@ -1404,6 +1480,7 @@ for i in 0..frames-1:
 audio: slice the AudioBuffer for the range into 1024-frame AudioData chunks (format 'f32-planar'), timestamp in µs → audioEncoder.encode
 flush both → muxer.finalize() → save
 ```
+**Frame capture:** read the render target with `canvas.transferToImageBitmap()` inside the same task as `renderFrame(t)` (or create the export context with `preserveDrawingBuffer: true`). With `preserveDrawingBuffer: false`, a direct `new VideoFrame(canvas)` can capture a cleared buffer.
 
 **Cancel:** set an abort flag, call `encoder.close()`, and `stream.abort()`.
 
@@ -1641,6 +1718,7 @@ A custom DOM menu bar (not the native Electron menu, so it works the same on the
   - `file:save`
   - `file:stream-open`, `file:stream-write`, `file:stream-close`, `file:stream-abort` (keep a `Map<id, fd>`, and close any leftover streams on `will-quit`)
   - `image:fetch` (host allow-list)
+  - `asset:read` (reads only `renderer/fonts/` and `renderer/vendor/`; used by `SA.platform.readAsset` because `fetch()` cannot read `file://`)
   - `media:put`, `media:get`
   - `studio:open`, `studio:autosave-write`, `studio:autosave-read`
   - `recent:list`, `recent:add`
@@ -1718,18 +1796,18 @@ Update the feature bullets and the snapshot section (canvas, both aspect ratios)
 |---|---|---|
 | **P1 Foundation** | `scripts/check.js`, the `test` script, `format.js`, `platform.js`, `suno.js` changed to use it, `app.js` web mode, CSP updates, `.nojekyll`, Pages workflow | `npm run check` and `npm test` pass. `npm start` behaves as before. `npx http-server renderer -p 8080`, then opening `/index.html` in the browser pane and importing a JSON renders the badges, with no console errors. |
 | **P2 Canvas card** | `card/palette.js`, `card/canvas-card.js`, the save-image split button, new IPC `file:save`, `image:fetch`, removing the DOM snapshot | The 16:9 output matches `snapshot/suno-suno-achievement.jpg` in content and colors (compare visually with Read). 9:16 is 1080×1920 with nothing clipped. It works in Electron and on the web. The avatar shows in both (or the placeholder on the web if CORS blocks it). |
-| **P3 SRT and script** | `srt.js`, `script-gen.js`, `color.js`, `rng.js`, `easing.js` + tests | Round-trip tests pass (CRLF, BOM, `.` milliseconds, Japanese, fx tag). `script-gen` on `@suno` data gives the expected cue kinds and ordering. The easing tests pass. |
+| **P3 SRT, script and tween** | `srt.js`, `script-gen.js`, `color.js`, `rng.js`, `easing.js`, `tween.js` + tests | Round-trip tests pass (CRLF, BOM, `.` milliseconds, Japanese, fx tag). `script-gen` on `@suno` data gives the expected cue kinds and ordering. The easing tests pass, `names.length ≥ 30`, and every curve hits `f(0)=0` / `f(1)=1`. |
 | **P4 Studio shell** | `studio.html`/`css`, `store.js`, `project.js` (+ tests), `app.js` shell, `menu.js`, splitters, layout presets, `io.js` save/open/autosave, handoff from index | "Open Studio" moves the data across. The menus all open, and keyboard navigation works. Panels resize and persist. Save → reload → Open restores the project. Undo/redo works for a dummy command. |
 | **P5 Text → vector → GL** | `font.js`, `geometry.js` (+ tests), `scene.js`, `gl/context.js`, the basic text pass with solid fill, `engine.js`, `preview.js` transport | English and Japanese cues render as crisp vector outlines. Letters with holes (`A`, `B`, `8`, `あ`, `愛`) are correct. Play, pause and scrub are in sync with the audio. The fallback banner appears when WebGL2 is forced off. |
-| **P5b Restructure → beats** | §7.18 `textflow.js` + tests, the Beat model (project.beats, beatStyles, beatKindStyle), `scene.js`/`motion.js` working per beat, beat sub-blocks in the timeline (drag, split, merge, edit, pin), restructuring again while keeping pinned beats, `\N` `\P` `\h` parsing, long-hold repeat, recap (whole text again) | Long Japanese and English lines split naturally into lines and pages. The page timing, repeats, and the full-text recap (with the gather transition) show in the preview. The "too fast to read" warning appears. |
+| **P5b Restructure → beats** | §7.16 `textflow.js` + tests, the Beat model (project.beats, beatStyles, beatKindStyle), `scene.js`/`motion.js` working per beat, beat sub-blocks in the timeline (drag, split, merge, edit, pin), restructuring again while keeping pinned beats, `\N` `\P` `\h` parsing, long-hold repeat, recap (whole text again) | Long Japanese and English lines split naturally into lines and pages. The page timing, repeats, and the full-text recap (with the gather transition) show in the preview. The "too fast to read" warning appears. |
 | **P6 Motion system** | `motion.js` (+ tests), `layout.js` (+ tests), effects for Animation, Layout, Enter, Exit, Hold, Location (CPU parts), per-letter state textures, vertex deformations | Each enter/exit/hold type can be chosen and looks right. The formations row, vertical, circle, arc, spiral, wave, grid, stackedWords, scatter and path work, and so does the start formation → target "build-up", including `formation:circle` → row. Stagger orders work. |
 | **P7 Shaders** | SDF (JFA), fill/edge/post passes, bloom, background pass with camera focus, the particle, stroke and pieces representations, morph | Every Fill, Edge and Post type renders with no GL errors (`gl.getError()` checked in debug mode). Draw-on, particles, shatter and morph work across cues. The preview stays ≥ 30 fps at half preview scale on the dev machine with the Neon preset. |
 | **P8 Inspector and manual editing** | `inspector.js` + controls, the override model, selection and handles in the preview, the `path` point editor, keyframe buttons | Selecting a letter, then moving, rotating and scaling it, sets overrides. The inspector shows override markers and reset. Keyframes animate. Undo covers everything. Editing text keeps valid overrides and reports orphans. |
 | **P9 Timeline** | `timeline.js` with all rows and interactions | Moving, trimming, splitting and merging cues updates the SRT export. Keyframes can be dragged, copied, pasted and given an ease. Snapping works. Waveform and scrub are accurate to 1 frame. |
 | **P10 Color and random** | `colors.js` picker, gradient editor, palettes, card theme editor, `random.js`, presets menu | Colors and gradients apply at every level and can be keyframed (OKLab blending). Palette import/export works. Random with a fixed seed is reproducible, respects locks, and never touches manual overrides. Re-roll changes the result. |
-| **P10b Layers** | §7.14: video/image layers, foreground, blend/opacity, layer timeline rows, transparency grid, the new post shaders (glitch and dissolve families first) | A background video plays in sync and matches frame-for-frame in export. A foreground PNG with alpha composites correctly. The lyrics layer is transparent over the video, and shadows and glow blend correctly. Every glitch and dissolve type renders. |
-| **P10c Gaps and credits** | §7.15 `fillers.js`, `audio-analysis.js` (+ tests: the FFT of a 440 Hz sine peaks in the right band; results are deterministic), `gl/shapes.js`, the Fillers track, audio-reactive links; §7.16 `credits.js`, the Credits dialog and track | Every gap ≥ minGap gets the right default filler. Countdown reaches the next cue exactly. Spectrum and waveform match the audio in preview and export. Pinned fillers survive cue edits. The title/artist element, always-on corner credit, and end card all work alone and together, and can be edited like cues. SRT export leaves credits out by default. §7.17 maximum duration: all 3 overflow modes work, the timeline marker shows, and the export length equals the maximum. |
-| **P11 Export** | `video-export.js`, the export dialog, stream saving, audio | Electron and the web both export a 10 s 1080p30 MP4 with AAC, and a 9:16 60 fps one. The file plays in the browser pane with A/V in sync. The WebM fallback works when MP4 is forced off. **The transparent export (VP9 alpha WebM or PNG-sequence zip) keeps alpha**: check by loading it back over a checkerboard. Cancel works. A 3-minute export doesn't run out of memory (streaming). |
+| **P10b Layers** | §7.11: video/image layers, foreground, blend/opacity, layer timeline rows, transparency grid, the new post shaders (glitch and dissolve families first) | A background video plays in sync and matches frame-for-frame in export. A foreground PNG with alpha composites correctly. The lyrics layer is transparent over the video, and shadows and glow blend correctly. Every glitch and dissolve type renders. |
+| **P10c Gaps and credits** | §7.14 `fillers.js`, `audio-analysis.js` (+ tests: the FFT of a 440 Hz sine peaks in the right band; results are deterministic), `gl/shapes.js`, the Fillers track, audio-reactive links; §7.15 `credits.js`, the Credits dialog and track | Every gap ≥ minGap gets the right default filler. Countdown reaches the next cue exactly. Spectrum and waveform match the audio in preview and export. Pinned fillers survive cue edits. The title/artist element, always-on corner credit, and end card all work alone and together, and can be edited like cues. SRT export leaves credits out by default. §7.17 maximum duration: all 3 overflow modes work, the timeline marker shows, and the export length equals the maximum. |
+| **P11 Export** | `video-export.js`, the export dialog, stream saving, audio | Electron and the web both export a 10 s 1080p30 MP4 with AAC, and a 9:16 60 fps one. The file plays in the browser pane with A/V in sync. The WebM fallback works when MP4 is forced off. **The transparent export keeps alpha through the PNG-sequence zip** (check by loading it back over a checkerboard); the VP9-alpha WebM path is optional (§7.11). Cancel works. A 3-minute export doesn't run out of memory (streaming). |
 | **P12 Polish** | i18n for everything in 5 languages, README, smoke tests, `npm run dist` build | The i18n smoke test reports 0 missing. The `dist` installer launches, and the Studio works in the packaged app (fonts and vendor files included). |
 
 ---
@@ -1737,7 +1815,8 @@ Update the feature bullets and the snapshot section (canvas, both aspect ratios)
 ## 13. Verification tools
 
 - **Unit tests** (`scripts/test/*.test.js`, `node --test`):
-  - easing: endpoints, symmetry, bezier reference values
+  - easing: endpoints, symmetry, bezier reference values, `names.length ≥ 30` and every name parses
+  - tween: number/vec/color kinds, before-first / after-last clamping, ease applied exactly once
   - rng: determinism
   - color: hex round-trip, OKLab round-trip error < 1e-4
   - srt: fixtures in `scripts/test/fixtures/*.srt`
@@ -1769,7 +1848,7 @@ Update the feature bullets and the snapshot section (canvas, both aspect ratios)
 
 ---
 
-## 15. How big the combination space is, and the performance budget
+## 14. How big the combination space is, and the performance budget
 
 ### 15.1 Combination count
 Just the **type choices**, without params, easing or colors:
@@ -1788,7 +1867,7 @@ Just the **type choices**, without params, easing or colors:
 | Background | 6 | |
 
 - One layer each: 8 × 88 × 19 × 14 × 15 × 9 × 13 × 7 × 35 × 6 ≈ **5.5 × 10¹¹** combinations per cue.
-- With stacking plus the 30+ easing curves × in/out × 11 groups, the variety is effectively unlimited.
+- With stacking plus the 33 named tween curves and the parametric forms (`cubic-bezier`, `spring`, `steps`, `hold`) × in/out × 11 groups, the variety is effectively unlimited.
 - Random generation needs guardrails so results stay tasteful: fit rules, `intensity`, `avoidRepeats`, and the presets.
 
 ### 15.2 Performance budget
@@ -1809,7 +1888,7 @@ Just the **type choices**, without params, easing or colors:
 - **Random generation:** stays within the budget unless `intensity = 3`.
 - **Export speed estimate:** frames × (render + encode). On a mid-range GPU, 1080p30 with a typical preset (≈ 10 units) is about 1.5–3× real time, so a 3-minute song takes about 5–9 minutes. The export dialog shows a measured ETA after 30 frames.
 
-## 14. Risks and notes
+## 15. Risks and notes
 - **Suno images on the web:** CORS may block drawing avatars and covers from the Suno CDN into a canvas. The placeholder fallback covers this; confirm the behavior in P2 and note it in the README.
 - **Encoder support:** H.264 and AAC encoding depend on the OS and GPU. Check with `isConfigSupported` every time; never assume.
 - **Japanese font size:** the Japanese font is large. It loads only when needed, and a "Loading font…" status shows in the preview.
