@@ -291,7 +291,7 @@ A file is valid when `Array.isArray(songs) && profile` (the same check as in `ma
   id: 'c_8f3a…',          // stable random id, never reused
   start: 12.5, end: 15.0, // seconds
   text: 'Centurion\n100 songs',   // may contain \n; SRT <b><i><font color> are parsed into spans
-  spans: [{ from, to, bold, italic, color }],   // derived from tags, optional
+  spans: [{ from, to, bold, italic, underline, color }],   // derived from tags, optional
   fx: { enter: 'scramble', exit: 'explode' },   // from inline {fx:...}, optional
   meta: { kind: 'intro'|'badge'|'stat'|'song'|'completion'|'outro'|'custom', badgeId, category, tier, songId }
 }

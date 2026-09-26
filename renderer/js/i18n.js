@@ -100,6 +100,22 @@ SA.i18n = (() => {
         generated: 'Generated {date}',
         unofficial: 'unofficial',
       },
+      studio: {
+        script: {
+          locked: 'Locked',
+          stat: {
+            songs: '{value} songs',
+            plays: '{value} total plays',
+            likes: '{value} total likes',
+            comments: '{value} total comments',
+            runtime: '{value} of music',
+            followers: '{value} followers',
+          },
+          topSong: '#{rank} {title}\n{value} {statLabel}',
+          completion: '{unlocked}/{total} achievements · {percent}%',
+          outro: 'Made with Suno Achievement (unofficial)',
+        },
+      },
       footer: {
         source: 'Data from the public Suno profile API. Unofficial and unaffiliated with Suno.',
       },
@@ -235,6 +251,22 @@ SA.i18n = (() => {
       snapshot: {
         generated: '作成日 {date}',
         unofficial: '非公式',
+      },
+      studio: {
+        script: {
+          locked: '未達成',
+          stat: {
+            songs: '楽曲{value}曲',
+            plays: '累計{value}回再生',
+            likes: '累計{value}いいね',
+            comments: '累計{value}コメント',
+            runtime: '総再生時間{value}',
+            followers: 'フォロワー{value}人',
+          },
+          topSong: '#{rank} {title}\n{value} {statLabel}',
+          completion: '実績 {unlocked}/{total} · {percent}%',
+          outro: 'Suno Achievement で作成（非公式）',
+        },
       },
       footer: {
         source: 'データはSunoの公開プロフィールAPIから取得しています。非公式であり、Sunoとは無関係です。',
@@ -372,6 +404,22 @@ SA.i18n = (() => {
         generated: 'Generado el {date}',
         unofficial: 'no oficial',
       },
+      studio: {
+        script: {
+          locked: 'Bloqueado',
+          stat: {
+            songs: '{value} canciones',
+            plays: '{value} reproducciones',
+            likes: '{value} me gusta',
+            comments: '{value} comentarios',
+            runtime: '{value} de música',
+            followers: '{value} seguidores',
+          },
+          topSong: '#{rank} {title}\n{value} {statLabel}',
+          completion: 'Logros {unlocked}/{total} · {percent}%',
+          outro: 'Creado con Suno Achievement (no oficial)',
+        },
+      },
       footer: {
         source: 'Datos de la API pública de perfiles de Suno. No oficial y sin afiliación con Suno.',
       },
@@ -508,6 +556,22 @@ SA.i18n = (() => {
         generated: 'Généré le {date}',
         unofficial: 'non officiel',
       },
+      studio: {
+        script: {
+          locked: 'Verrouillé',
+          stat: {
+            songs: '{value} titres',
+            plays: '{value} écoutes',
+            likes: "{value} j'aime",
+            comments: '{value} commentaires',
+            runtime: '{value} de musique',
+            followers: '{value} abonnés',
+          },
+          topSong: '#{rank} {title}\n{value} {statLabel}',
+          completion: 'Succès {unlocked}/{total} · {percent} %',
+          outro: 'Créé avec Suno Achievement (non officiel)',
+        },
+      },
       footer: {
         source: "Données issues de l'API publique des profils Suno. Non officiel, sans affiliation avec Suno.",
       },
@@ -643,6 +707,22 @@ SA.i18n = (() => {
       snapshot: {
         generated: 'Создано {date}',
         unofficial: 'неофициально',
+      },
+      studio: {
+        script: {
+          locked: 'Не получено',
+          stat: {
+            songs: '{value} песен',
+            plays: '{value} прослушиваний',
+            likes: '{value} лайков',
+            comments: '{value} комментариев',
+            runtime: '{value} музыки',
+            followers: '{value} подписчиков',
+          },
+          topSong: '#{rank} {title}\n{value} {statLabel}',
+          completion: 'Достижения {unlocked}/{total} · {percent}%',
+          outro: 'Сделано в Suno Achievement (неофициально)',
+        },
       },
       footer: {
         source: 'Данные из публичного API профилей Suno. Неофициально и не связано с Suno.',
