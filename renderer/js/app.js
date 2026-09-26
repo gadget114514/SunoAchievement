@@ -62,6 +62,8 @@
     el.heroDesc = document.getElementById('hero-desc');
     el.heroSince = document.getElementById('hero-since');
     el.btnSnapshot = document.getElementById('btn-snapshot');
+    el.snapshotSplit = document.getElementById('snapshot-split');
+    el.snapshotMenu = document.getElementById('snapshot-menu');
     el.btnOpen = document.getElementById('btn-open');
     el.btnRefresh = document.getElementById('btn-refresh');
     el.btnExport = document.getElementById('btn-export');
@@ -156,7 +158,22 @@
     el.btnRefresh.addEventListener('click', () => refresh());
     el.btnExport.addEventListener('click', exportData);
     el.btnImport.addEventListener('click', importData);
-    el.btnSnapshot.addEventListener('click', saveSnapshot);
+    el.btnSnapshot.addEventListener('click', (event) => {
+      event.stopPropagation();
+      toggleSnapshotMenu();
+    });
+    el.snapshotMenu.addEventListener('click', (event) => {
+      const item = event.target.closest('[data-image-aspect]');
+      if (!item) return;
+      closeSnapshotMenu();
+      saveCard(item.dataset.imageAspect, item.dataset.imageType);
+    });
+    document.addEventListener('click', (event) => {
+      if (!el.snapshotSplit.contains(event.target)) closeSnapshotMenu();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeSnapshotMenu();
+    });
 
     el.btnOpen.addEventListener('click', () => {
       if (state.handle) data.openExternal(cfg.profileUrl(state.handle));
@@ -567,10 +584,37 @@
     }
   }
 
-  async function saveSnapshot() {
-    if (!state.dataset) return;
+  function toggleSnapshotMenu() {
+    const open = el.snapshotMenu.hidden;
+    el.snapshotMenu.hidden = !open;
+    el.btnSnapshot.setAttribute('aria-expanded', String(open));
+  }
+
+  function closeSnapshotMenu() {
+    if (el.snapshotMenu.hidden) return;
+    el.snapshotMenu.hidden = true;
+    el.btnSnapshot.setAttribute('aria-expanded', 'false');
+  }
+
+  async function saveCard(aspect, type) {
+    if (!state.dataset || !state.evaluation) return;
     try {
-      const result = await data.saveSnapshot(state.dataset, i18n.lang());
+      const profile = state.dataset.profile;
+      const avatar = await platform.loadImage(profile.avatar, profile.displayName || profile.handle);
+      const blob = await SA.card.renderToBlob({
+        dataset: state.dataset,
+        evaluation: state.evaluation,
+        aspect,
+        theme: SA.card.theme(),
+        images: { avatar },
+        lang: i18n.lang(),
+        generatedAt: new Date().toISOString(),
+        type,
+        quality: 0.92,
+      });
+      const extension = type === 'image/png' ? 'png' : 'jpg';
+      const name = `suno-${state.handle}-achievements-${aspect.replace(':', 'x')}.${extension}`;
+      const result = await platform.saveFile({ blob, name, mime: type });
       if (!result || result.canceled) {
         toast('toast.cancelled');
         return;

@@ -77,7 +77,13 @@ SA.i18n = (() => {
       actions: {
         export: 'Export JSON',
         import: 'Import JSON',
-        snapshot: 'Save snapshot (.jpg)',
+        saveImage: 'Save image',
+      },
+      image: {
+        jpg169: '16:9 JPG',
+        png169: '16:9 PNG',
+        jpg916: '9:16 JPG',
+        png916: '9:16 PNG',
       },
       web: {
         import: 'Import JSON',
@@ -92,6 +98,7 @@ SA.i18n = (() => {
       },
       snapshot: {
         generated: 'Generated {date}',
+        unofficial: 'unofficial',
       },
       footer: {
         source: 'Data from the public Suno profile API. Unofficial and unaffiliated with Suno.',
@@ -206,7 +213,13 @@ SA.i18n = (() => {
       actions: {
         export: 'JSONエクスポート',
         import: 'JSONインポート',
-        snapshot: 'スナップショット保存 (.jpg)',
+        saveImage: '画像を保存',
+      },
+      image: {
+        jpg169: '16:9 JPG',
+        png169: '16:9 PNG',
+        jpg916: '9:16 JPG',
+        png916: '9:16 PNG',
       },
       web: {
         import: 'JSONを読み込む',
@@ -221,6 +234,7 @@ SA.i18n = (() => {
       },
       snapshot: {
         generated: '作成日 {date}',
+        unofficial: '非公式',
       },
       footer: {
         source: 'データはSunoの公開プロフィールAPIから取得しています。非公式であり、Sunoとは無関係です。',
@@ -335,7 +349,13 @@ SA.i18n = (() => {
       actions: {
         export: 'Exportar JSON',
         import: 'Importar JSON',
-        snapshot: 'Guardar captura (.jpg)',
+        saveImage: 'Guardar imagen',
+      },
+      image: {
+        jpg169: '16:9 JPG',
+        png169: '16:9 PNG',
+        jpg916: '9:16 JPG',
+        png916: '9:16 PNG',
       },
       web: {
         import: 'Importar JSON',
@@ -350,6 +370,7 @@ SA.i18n = (() => {
       },
       snapshot: {
         generated: 'Generado el {date}',
+        unofficial: 'no oficial',
       },
       footer: {
         source: 'Datos de la API pública de perfiles de Suno. No oficial y sin afiliación con Suno.',
@@ -464,7 +485,13 @@ SA.i18n = (() => {
       actions: {
         export: 'Exporter JSON',
         import: 'Importer JSON',
-        snapshot: 'Enregistrer la capture (.jpg)',
+        saveImage: "Enregistrer l'image",
+      },
+      image: {
+        jpg169: '16:9 JPG',
+        png169: '16:9 PNG',
+        jpg916: '9:16 JPG',
+        png916: '9:16 PNG',
       },
       web: {
         import: 'Importer JSON',
@@ -479,6 +506,7 @@ SA.i18n = (() => {
       },
       snapshot: {
         generated: 'Généré le {date}',
+        unofficial: 'non officiel',
       },
       footer: {
         source: "Données issues de l'API publique des profils Suno. Non officiel, sans affiliation avec Suno.",
@@ -593,7 +621,13 @@ SA.i18n = (() => {
       actions: {
         export: 'Экспорт JSON',
         import: 'Импорт JSON',
-        snapshot: 'Сохранить снимок (.jpg)',
+        saveImage: 'Сохранить изображение',
+      },
+      image: {
+        jpg169: '16:9 JPG',
+        png169: '16:9 PNG',
+        jpg916: '9:16 JPG',
+        png916: '9:16 PNG',
       },
       web: {
         import: 'Импорт JSON',
@@ -608,6 +642,7 @@ SA.i18n = (() => {
       },
       snapshot: {
         generated: 'Создано {date}',
+        unofficial: 'неофициально',
       },
       footer: {
         source: 'Данные из публичного API профилей Suno. Неофициально и не связано с Suno.',

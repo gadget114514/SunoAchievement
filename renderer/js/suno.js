@@ -26,9 +26,6 @@ SA.data = (() => {
     removeCache: (handle) => platform.cache.remove(handle),
     exportData: (data) => platform.exportJson(data),
     importData: () => platform.importJson(),
-    saveSnapshot: (dataset, lang) => platform.saveSnapshot(dataset, lang),
-    onSnapshotData: (callback) => platform.onSnapshotData(callback),
-    snapshotReady: () => platform.snapshotReady(),
     openExternal: (url) => platform.openExternal(url),
     onProgress: (callback) => platform.onProgress(callback),
   };

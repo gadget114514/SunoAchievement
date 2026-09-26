@@ -256,7 +256,7 @@ renderer/
   js/studio/random.js           NEW   §10.9
   js/studio/io.js               NEW   §10.10 save/open/autosave/import
   js/studio/export-dialog.js    NEW   §9 UI
-DELETE after Phase 2 parity: renderer/snapshot.html, renderer/js/snapshot.js, renderer/css/snapshot.css
+DELETED in P2: renderer/snapshot.html, renderer/js/snapshot.js, renderer/css/snapshot.css
 ```
 
 ---
@@ -477,29 +477,29 @@ Move these out of `app.js`/`snapshot.js` without changing behavior: `esc`, `fmtI
 - `SA.card.draw(ctx, { dataset, evaluation, aspect, theme, images: { avatar }, lang, generatedAt })`:
   - `ctx` is a 2D context sized **exactly** to 1920×1080 or 1080×1920.
   - Draw order: background (radial glows as in `snapshot.css` `body`), header, grid, footer.
-- **16:9 layout** (match `snapshot.css`; measure the old snapshot with Read on `snapshot/suno-suno-achievement.jpg` and the CSS):
-  - padding 40
-  - header height about 200: avatar circle 120, name 44px bold, handle muted 22px, description (1 line, cut with an ellipsis), 6 stat tiles, completion ring (conic gradient drawn as an arc with its percentage)
-  - grid of 8 columns × 4 rows with 14 px gaps
-  - footer height 36
+- **16:9 layout** (match `snapshot.css`; verified against `snapshot/suno-suno-achievement.jpg` with a pixel-run measurement):
+  - padding 40; top 28; bottom 22; vertical gaps 15
+  - header height 98: avatar 86×86 rounded square (r=20), name 34px bold, handle muted 18px, description (1 line, cut with an ellipsis), 6 stat tiles (value 30px bold, label 13px uppercase), completion ring 98 (conic gradient) with summary and brand
+  - grid of 8 columns × 4 rows with 9 px gaps
+  - footer height 20
 - **9:16 layout:**
   - padding 40
-  - header stacked vertically (about 520 tall): avatar + name row, description, stat tiles in a 3×2 grid, then the ring and summary centered
-  - grid of 4 columns × 8 rows
+  - header stacked vertically (580 tall): avatar 112 rounded square, name row (40px) centered, description, stat tiles in a 3×2 grid, then the ring 108 and summary centered
+  - grid of 4 columns × 8 rows with 12 px gaps
   - footer
-- **Badge cell:**
-  - rounded rect r=14, fill `card`, border 1.5 px (unlocked: tint at 45% alpha; locked: `line`)
-  - left tier stripe 6 px (locked: desaturated to 35% alpha)
-  - icon circle with a tint→tint2 gradient (locked: gray)
-  - name bold, 2-line description muted, detail line, progress bar (tint gradient) with an `a / b` label for metric/best badges
-  - locked cells are drawn at an overall 55% alpha
-- **Icons:** port the 9 SVG symbol paths from `snapshot.html` into `Path2D` strings. They are 24×24 stroke icons; draw them with `stroke`, lineWidth 2, round caps.
+- **Badge cell** (16:9 metrics; 9:16 scales them down):
+  - rounded rect r=12, fill `card-2`, border 1 px (unlocked: tint at 45% alpha; locked: `line-soft`)
+  - left tier stripe 6 px (locked: `#4a5164`)
+  - icon box 44×44 r=12 with a tint→tint2 gradient (locked: `card` background, tint icon)
+  - name bold 17px, 2-line description 14px muted, detail line 13.5px, progress bar 8px (tint gradient) with an `a / b` label for metric/best badges
+  - locked cells are drawn at an overall 74% alpha, matching `.snap-badge.is-locked`
+- **Icons:** port the SVG symbol paths used by the badges plus `verified` from `snapshot.html` into `Path2D` strings (11 in total). They are 24×24 stroke icons; draw them with `stroke`, lineWidth 2, round caps.
 - **Text:**
   - `ctx.font` with the same family stack as the CSS.
   - `fitText(ctx, text, maxWidth, maxLines)` wraps and adds ellipses. Use `Intl.Segmenter` (granularity `'word'`) for line breaks, and fall back to breaking per grapheme for Japanese.
-- `SA.card.layout(aspect)` returns `{ badgeRects: {badgeId: {x, y, w, h}}, headerRect, ringRect }`. The video background uses it to zoom the camera.
+- `SA.card.layout(aspect, badges?)` returns `{ badgeRects: {badgeId: {x, y, w, h}}, headerRect, ringRect }`. The video background uses it to zoom the camera. Without `badges`, `badgeRects` is empty.
 - `SA.card.renderToBlob({ …, type: 'image/jpeg'|'image/png', quality: 0.92 })` returns a `Blob`, using an `OffscreenCanvas`.
-- **Parity check:** the 16:9 canvas card must look the same as the current DOM snapshot: same content and colors, positions within about 8 px. After that, delete the DOM snapshot files and `snapshot:save`, `renderSnapshotJpeg` and `snapshotWindow` in `main.js`. The `SA_SMOKE_SNAPSHOT` hook then uses the canvas path through `executeJavaScript`.
+- **Parity check:** the 16:9 canvas card must look the same as the old DOM snapshot: same content and colors, positions within about 8 px. This is done: the DOM snapshot files and `snapshot:save`, `renderSnapshotJpeg` and `snapshotWindow` in `main.js` were deleted in P2. The `SA_SMOKE_SNAPSHOT` hook now renders both aspects through `executeJavaScript` and writes them to temp.
 
 ### 5.4 `js/srt.js` → `SA.srt` (pure)
 ```js

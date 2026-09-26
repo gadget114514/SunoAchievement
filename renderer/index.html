@@ -83,7 +83,15 @@
           <p id="hero-since" class="hero-since"></p>
         </div>
         <div class="hero-actions">
-          <button id="btn-snapshot" class="btn btn-ghost"><svg class="icon"><use href="#ic-camera"></use></svg><span data-i18n="actions.snapshot"></span></button>
+          <div id="snapshot-split" class="split">
+            <button id="btn-snapshot" class="btn btn-ghost" aria-haspopup="true" aria-expanded="false"><svg class="icon"><use href="#ic-camera"></use></svg><span data-i18n="actions.saveImage"></span><span class="split-caret">▾</span></button>
+            <div id="snapshot-menu" class="split-menu" hidden>
+              <button type="button" data-image-aspect="16:9" data-image-type="image/jpeg" data-i18n="image.jpg169"></button>
+              <button type="button" data-image-aspect="16:9" data-image-type="image/png" data-i18n="image.png169"></button>
+              <button type="button" data-image-aspect="9:16" data-image-type="image/jpeg" data-i18n="image.jpg916"></button>
+              <button type="button" data-image-aspect="9:16" data-image-type="image/png" data-i18n="image.png916"></button>
+            </div>
+          </div>
           <button id="btn-open" class="btn btn-ghost"><svg class="icon"><use href="#ic-external"></use></svg><span data-i18n="profile.open"></span></button>
           <button id="btn-refresh" class="btn btn-ghost"><svg class="icon"><use href="#ic-refresh"></use></svg><span data-i18n="input.refresh"></span></button>
           <button id="btn-export" class="btn btn-ghost"><svg class="icon"><use href="#ic-download"></use></svg><span data-i18n="actions.export"></span></button>
@@ -135,6 +143,8 @@
 <script src="js/achievements.js"></script>
 <script src="js/platform.js"></script>
 <script src="js/suno.js"></script>
+<script src="js/card/palette.js"></script>
+<script src="js/card/canvas-card.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

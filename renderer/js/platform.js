@@ -82,6 +82,55 @@ SA.platform = (() => {
     remove: (handle) => (isElectron ? bridge.cacheRemove(handle).then(unwrap).catch(() => false) : Promise.resolve(false)),
   };
 
+  const imageCache = new Map();
+
+  function loadImageElement(src) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.crossOrigin = 'anonymous';
+      image.decoding = 'async';
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(Object.assign(new Error('image-load-failed'), { code: 'image-load-failed' }));
+      image.src = src;
+    });
+  }
+
+  function placeholderImage(label) {
+    const size = 256;
+    const canvas = new OffscreenCanvas(size, size);
+    const ctx = canvas.getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, size, size);
+    gradient.addColorStop(0, '#ff8a3d');
+    gradient.addColorStop(1, '#ff4d8d');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, size, size);
+    const initial = String(label || '?').trim().charAt(0).toUpperCase() || '?';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+    ctx.font = '700 118px "Segoe UI", Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(initial, size / 2, size / 2 + 6);
+    return canvas.transferToImageBitmap();
+  }
+
+  async function loadImage(url, label) {
+    if (!url) return null;
+    if (imageCache.has(url)) return imageCache.get(url);
+    const request = (async () => {
+      try {
+        if (isElectron) {
+          const dataUrl = unwrap(await bridge.imageFetch(url));
+          return await loadImageElement(dataUrl);
+        }
+        return await loadImageElement(url);
+      } catch {
+        return placeholderImage(label);
+      }
+    })();
+    imageCache.set(url, request);
+    return request;
+  }
+
   async function importJson() {
     if (isElectron) {
       const result = unwrap(await bridge.cacheImport());
@@ -104,7 +153,8 @@ SA.platform = (() => {
       return { canceled: false, filePath: name };
     }
     if (typeof bridge.saveFile !== 'function') throw unsupported('saveFile');
-    return unwrap(await bridge.saveFile({ bytes: options.bytes, defaultName: options.name, mime: options.mime }));
+    const bytes = options.bytes || (options.blob ? new Uint8Array(await options.blob.arrayBuffer()) : null);
+    return unwrap(await bridge.saveFile({ bytes, defaultName: options.name, mime: options.mime }));
   }
 
   async function exportJson(dataset) {
@@ -112,11 +162,6 @@ SA.platform = (() => {
     const handle = (dataset.profile && dataset.profile.handle) || 'profile';
     if (isElectron) return unwrap(await bridge.cacheExport(null, dataset));
     return saveFile({ bytes: new TextEncoder().encode(JSON.stringify(dataset, null, 2)), name: `suno-${handle}.json`, mime: 'application/json' });
-  }
-
-  function saveSnapshot(dataset, lang) {
-    if (!isElectron) return Promise.reject(unsupported('saveSnapshot'));
-    return bridge.saveSnapshot({ data: dataset, lang }).then(unwrap);
   }
 
   function openExternal(url) {
@@ -130,27 +175,16 @@ SA.platform = (() => {
     return () => {};
   }
 
-  function onSnapshotData(callback) {
-    if (isElectron && typeof bridge.onSnapshotData === 'function') return bridge.onSnapshotData(callback);
-    return () => {};
-  }
-
-  function snapshotReady() {
-    if (isElectron && typeof bridge.snapshotReady === 'function') bridge.snapshotReady();
-  }
-
   return {
     isElectron,
     isDataset,
     fetchProfile,
     fetchClip,
     cache,
+    loadImage,
     importJson,
     saveFile,
     exportJson,
-    saveSnapshot,
-    onSnapshotData,
-    snapshotReady,
     openExternal,
     onProgress,
   };

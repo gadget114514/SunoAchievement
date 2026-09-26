@@ -65,64 +65,32 @@ function fail(error) {
   return { ok: false, error: { code, message } };
 }
 
-const SNAPSHOT_WIDTH = 1920;
-const SNAPSHOT_HEIGHT = 1080;
+const IMAGE_HOST_RE = /(^|\.)(suno\.ai|suno\.com|cloudfront\.net)$/i;
+const IMAGE_MAX_BYTES = 10 * 1024 * 1024;
 
-function snapshotWindow() {
-  return new BrowserWindow({
-    width: SNAPSHOT_WIDTH,
-    height: SNAPSHOT_HEIGHT,
-    useContentSize: true,
-    show: false,
-    frame: false,
-    resizable: false,
-    skipTaskbar: true,
-    focusable: false,
-    opacity: 0,
-    backgroundColor: '#0b0d12',
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-      spellcheck: false,
-      backgroundThrottling: false,
-    },
-  });
-}
-
-async function renderSnapshotJpeg(payload) {
-  const dataset = payload && payload.data;
-  if (!dataset || !Array.isArray(dataset.songs) || !dataset.profile) {
-    throw Object.assign(new Error('nothing-to-snapshot'), { code: 'nothing-to-snapshot' });
+async function fetchImageDataUrl(rawUrl) {
+  if (typeof rawUrl !== 'string') {
+    throw Object.assign(new Error('blocked-url'), { code: 'blocked-url' });
   }
-  const win = snapshotWindow();
+  let parsed;
   try {
-    const ready = new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        ipcMain.removeListener('snapshot:ready', handler);
-        reject(new Error('snapshot-timeout'));
-      }, 20000);
-      function handler(event) {
-        if (event.sender !== win.webContents) return;
-        clearTimeout(timer);
-        ipcMain.removeListener('snapshot:ready', handler);
-        resolve();
-      }
-      ipcMain.on('snapshot:ready', handler);
-    });
-    await win.loadFile(path.join(__dirname, 'renderer', 'snapshot.html'));
-    win.webContents.send('snapshot:data', { data: dataset, lang: payload.lang || 'en' });
-    await ready;
-    win.showInactive();
-    await new Promise((resolve) => setTimeout(resolve, 180));
-    const image = await win.webContents.capturePage({ x: 0, y: 0, width: SNAPSHOT_WIDTH, height: SNAPSHOT_HEIGHT });
-    const size = image.getSize();
-    const final = size.width === SNAPSHOT_WIDTH && size.height === SNAPSHOT_HEIGHT ? image : image.resize({ width: SNAPSHOT_WIDTH, height: SNAPSHOT_HEIGHT, quality: 'best' });
-    return final.toJPEG(90);
-  } finally {
-    if (!win.isDestroyed()) win.destroy();
+    parsed = new URL(rawUrl);
+  } catch {
+    throw Object.assign(new Error('blocked-url'), { code: 'blocked-url' });
   }
+  if (parsed.protocol !== 'https:' || !IMAGE_HOST_RE.test(parsed.hostname)) {
+    throw Object.assign(new Error('blocked-url'), { code: 'blocked-url' });
+  }
+  const response = await fetch(parsed.href, { headers: { Referer: 'https://suno.com/' } });
+  if (!response.ok) {
+    throw Object.assign(new Error(`image-http-${response.status}`), { code: 'image-fetch-failed' });
+  }
+  const buffer = Buffer.from(await response.arrayBuffer());
+  if (buffer.length > IMAGE_MAX_BYTES) {
+    throw Object.assign(new Error('image-too-large'), { code: 'image-too-large' });
+  }
+  const contentType = (response.headers.get('content-type') || 'image/jpeg').split(';')[0].trim() || 'image/jpeg';
+  return `data:${contentType};base64,${buffer.toString('base64')}`;
 }
 
 function registerIpc() {
@@ -213,25 +181,29 @@ function registerIpc() {
     }
   });
 
-  ipcMain.handle('snapshot:save', async (event, payload) => {
+  ipcMain.handle('file:save', async (event, payload) => {
     try {
-      const jpeg = await renderSnapshotJpeg(payload);
-      if (process.env.SA_SMOKE_SNAPSHOT) {
-        const smokePath = path.join(app.getPath('temp'), 'suno-snapshot-smoke.jpg');
-        fs.writeFileSync(smokePath, jpeg);
-        return ok({ canceled: false, filePath: smokePath });
+      const bytes = payload && payload.bytes;
+      if (!bytes) {
+        return fail(Object.assign(new Error('nothing-to-save'), { code: 'nothing-to-save' }));
       }
-      const dataset = payload && payload.data;
-      const handle = normalizeHandle(dataset && dataset.profile && dataset.profile.handle) || 'profile';
       const owner = BrowserWindow.fromWebContents(event.sender);
       const result = await dialog.showSaveDialog(owner, {
-        title: 'Save snapshot',
-        defaultPath: `suno-${handle}-achievements.jpg`,
-        filters: [{ name: 'JPEG', extensions: ['jpg', 'jpeg'] }],
+        title: (payload && payload.title) || 'Save file',
+        defaultPath: (payload && payload.defaultName) || 'file',
+        filters: (payload && payload.filters) || [{ name: 'All files', extensions: ['*'] }],
       });
       if (result.canceled || !result.filePath) return ok({ canceled: true });
-      fs.writeFileSync(result.filePath, jpeg);
+      fs.writeFileSync(result.filePath, Buffer.from(bytes));
       return ok({ canceled: false, filePath: result.filePath });
+    } catch (error) {
+      return fail(error);
+    }
+  });
+
+  ipcMain.handle('image:fetch', async (_event, payload) => {
+    try {
+      return ok(await fetchImageDataUrl(payload && payload.url));
     } catch (error) {
       return fail(error);
     }
@@ -326,11 +298,28 @@ function createWindow() {
         })()`);
         console.log(`SMOKE_LANGS=${langReport}`);
         if (process.env.SA_SMOKE_SNAPSHOT) {
-          const datasetJson = await win.webContents.executeJavaScript('JSON.stringify(window.SA.app.currentData() || null)');
-          const jpeg = await renderSnapshotJpeg({ data: JSON.parse(datasetJson), lang: process.env.SA_SNAPSHOT_LANG || 'ja' });
-          const snapshotPath = path.join(app.getPath('temp'), 'suno-snapshot-smoke.jpg');
-          fs.writeFileSync(snapshotPath, jpeg);
-          console.log(`SMOKE_SNAPSHOT=${snapshotPath} bytes=${jpeg.length} magic=${jpeg[0].toString(16)}${jpeg[1].toString(16)}`);
+          const lang = process.env.SA_SNAPSHOT_LANG || 'ja';
+          const encoded = await win.webContents.executeJavaScript(`(async () => {
+            const data = window.SA.app.currentData();
+            const evaluation = window.SA.achievements.evaluate(data);
+            const avatar = await window.SA.platform.loadImage(data.profile.avatar, data.profile.displayName);
+            const out = {};
+            for (const aspect of ['16:9', '9:16']) {
+              const blob = await window.SA.card.renderToBlob({ dataset: data, evaluation, aspect, theme: window.SA.card.theme(), images: { avatar }, lang: ${JSON.stringify(lang)}, generatedAt: new Date().toISOString(), type: 'image/jpeg', quality: 0.9 });
+              const bytes = new Uint8Array(await blob.arrayBuffer());
+              let binary = '';
+              for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+              out[aspect] = btoa(binary);
+            }
+            return JSON.stringify(out);
+          })()`);
+          const cards = JSON.parse(encoded);
+          for (const [aspect, base64] of Object.entries(cards)) {
+            const jpeg = Buffer.from(base64, 'base64');
+            const cardPath = path.join(app.getPath('temp'), `suno-card-smoke-${aspect.replace(':', 'x')}.jpg`);
+            fs.writeFileSync(cardPath, jpeg);
+            console.log(`SMOKE_SNAPSHOT=${cardPath} aspect=${aspect} bytes=${jpeg.length} magic=${jpeg[0].toString(16)}${jpeg[1].toString(16)}`);
+          }
         }
         if (process.env.SA_SMOKE_LAYOUT) {
           win.setContentSize(1920, 1080);

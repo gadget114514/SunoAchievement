@@ -983,3 +983,48 @@ body.is-web #btn-snapshot {
   background: var(--card-2);
 }
 
+.split {
+  position: relative;
+  display: inline-flex;
+}
+
+.split-caret {
+  margin-left: 4px;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.split-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  min-width: 150px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.split-menu[hidden] {
+  display: none;
+}
+
+.split-menu button {
+  padding: 8px 10px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.split-menu button:hover {
+  background: var(--card-2);
+}
+

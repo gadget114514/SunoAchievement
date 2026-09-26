@@ -10,13 +10,8 @@ contextBridge.exposeInMainWorld('sunoApi', {
   cacheRemove: (handle) => ipcRenderer.invoke('cache:remove', { handle }),
   cacheExport: (handle, data) => ipcRenderer.invoke('cache:export', { handle, data }),
   cacheImport: () => ipcRenderer.invoke('cache:import'),
-  saveSnapshot: (payload) => ipcRenderer.invoke('snapshot:save', payload),
-  onSnapshotData: (callback) => {
-    const listener = (_event, payload) => callback(payload);
-    ipcRenderer.on('snapshot:data', listener);
-    return () => ipcRenderer.removeListener('snapshot:data', listener);
-  },
-  snapshotReady: () => ipcRenderer.send('snapshot:ready'),
+  saveFile: (payload) => ipcRenderer.invoke('file:save', payload),
+  imageFetch: (url) => ipcRenderer.invoke('image:fetch', { url }),
   openExternal: (url) => ipcRenderer.invoke('app:open-external', { url }),
   onProgress: (callback) => {
     const listener = (_event, payload) => callback(payload);
