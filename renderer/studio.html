@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' https: data: blob:; media-src 'self' https: blob:; font-src 'self'; connect-src 'self' blob: data:; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'" />
+<title>Suno Achievement Studio</title>
+<link rel="stylesheet" href="css/studio.css" />
+</head>
+<body>
+
+<div id="studio" class="studio">
+  <div id="menubar" class="menubar" role="menubar"></div>
+
+  <aside class="panel media-panel">
+    <div class="panel-title" data-i18n="studio.panel.media"></div>
+    <div class="panel-body">
+      <div class="avatar-row">
+        <img id="media-avatar" hidden alt="" />
+        <div>
+          <div id="media-name">—</div>
+          <div id="media-handle" class="panel-placeholder"></div>
+        </div>
+      </div>
+      <div class="meta-row"><span data-i18n="studio.panel.songs"></span><strong id="media-songs">0</strong></div>
+      <div class="meta-row"><span data-i18n="studio.panel.cues"></span><strong id="media-cues">0</strong></div>
+      <div class="meta-row"><span data-i18n="studio.panel.aspect"></span><strong id="media-aspect">16:9</strong></div>
+      <div class="meta-row"><span data-i18n="studio.panel.duration"></span><strong id="media-duration">0:00</strong></div>
+    </div>
+  </aside>
+  <div id="split-media" class="splitter-v"></div>
+
+  <main class="preview-panel">
+    <div class="preview-stage">
+      <canvas id="preview-canvas"></canvas>
+      <div id="welcome" class="welcome" hidden>
+        <h2 data-i18n="studio.welcome.title"></h2>
+        <p data-i18n="studio.welcome.body"></p>
+        <div class="welcome-actions">
+          <button id="welcome-import" class="btn btn-primary" data-i18n="studio.welcome.importJson"></button>
+          <button id="welcome-open" class="btn" data-i18n="studio.welcome.openProject"></button>
+          <button id="welcome-srt" class="btn" data-i18n="studio.welcome.importSrt"></button>
+        </div>
+      </div>
+    </div>
+    <div class="transport">
+      <button id="tp-start" class="btn btn-icon" data-i18n-title="studio.transport.start">⏮</button>
+      <button id="tp-prev" class="btn btn-icon" data-i18n-title="studio.transport.prevCue">◀◀</button>
+      <button id="tp-play" class="btn btn-icon" data-i18n-title="studio.transport.play">▶</button>
+      <button id="tp-next" class="btn btn-icon" data-i18n-title="studio.transport.nextCue">▶▶</button>
+      <button id="tp-end" class="btn btn-icon" data-i18n-title="studio.transport.end">⏭</button>
+      <span id="tp-time" class="time">0:00.00 / 0:00.00</span>
+      <button id="tp-aspect" class="btn aspect-badge">16:9</button>
+    </div>
+  </main>
+
+  <div id="split-inspector" class="splitter-v"></div>
+  <aside class="panel inspector-panel">
+    <div class="panel-title" data-i18n="studio.panel.inspector"></div>
+    <div class="panel-body">
+      <div class="panel-placeholder" data-i18n="studio.panel.inspectorPlaceholder"></div>
+      <div id="inspector-cues" class="cue-list"></div>
+    </div>
+  </aside>
+
+  <div id="split-timeline" class="splitter-h"></div>
+  <section class="timeline-panel">
+    <div class="panel-title" data-i18n="studio.panel.timeline"></div>
+    <div class="panel-body">
+      <div class="panel-placeholder" data-i18n="studio.panel.timelinePlaceholder"></div>
+    </div>
+  </section>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+<div id="dialog-root" class="dialog-backdrop" hidden></div>
+
+<script src="js/config.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/format.js"></script>
+<script src="js/achievements.js"></script>
+<script src="js/platform.js"></script>
+<script src="js/srt.js"></script>
+<script src="js/script-gen.js"></script>
+<script src="js/color.js"></script>
+<script src="js/lyrics/rng.js"></script>
+<script src="js/lyrics/easing.js"></script>
+<script src="js/lyrics/tween.js"></script>
+<script src="js/card/palette.js"></script>
+<script src="js/card/canvas-card.js"></script>
+<script src="js/studio/project.js"></script>
+<script src="js/studio/store.js"></script>
+<script src="js/studio/io.js"></script>
+<script src="js/studio/menu.js"></script>
+<script src="js/studio/app.js"></script>
+</body>
+</html>

@@ -157,6 +157,163 @@ SA.platform = (() => {
     return unwrap(await bridge.saveFile({ bytes, defaultName: options.name, mime: options.mime }));
   }
 
+  function filtersFor(accept) {
+    const tokens = String(accept || '')
+      .split(',')
+      .map((token) => token.trim())
+      .filter(Boolean);
+    const extensions = tokens.filter((token) => token.startsWith('.')).map((token) => token.slice(1));
+    if (!extensions.length) return [{ name: 'All files', extensions: ['*'] }];
+    return [{ name: extensions.join(', ').toUpperCase(), extensions }];
+  }
+
+  function pickFile(accept) {
+    return new Promise((resolve) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = accept || '';
+      input.hidden = true;
+      document.body.appendChild(input);
+      let settled = false;
+      function finish(result) {
+        if (settled) return;
+        settled = true;
+        input.remove();
+        resolve(result);
+      }
+      input.addEventListener(
+        'change',
+        () => {
+          const file = input.files && input.files[0];
+          if (!file) {
+            finish(null);
+            return;
+          }
+          file.arrayBuffer().then(
+            (buffer) => finish({ name: file.name, type: file.type, bytes: new Uint8Array(buffer) }),
+            () => finish(null)
+          );
+        },
+        { once: true }
+      );
+      input.addEventListener('cancel', () => finish(null), { once: true });
+      input.click();
+    });
+  }
+
+  async function readFile(accept) {
+    if (isElectron) {
+      const result = unwrap(await bridge.fileOpen({ filters: filtersFor(accept) }));
+      if (!result || result.canceled) return null;
+      return { name: result.name, type: result.type, bytes: new Uint8Array(result.bytes), path: result.path };
+    }
+    return pickFile(accept);
+  }
+
+  function openDatabase() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('sa-studio', 1);
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        for (const store of ['handoff', 'autosave']) {
+          if (!db.objectStoreNames.contains(store)) db.createObjectStore(store);
+        }
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(Object.assign(new Error('indexeddb-failed'), { code: 'indexeddb-failed' }));
+    });
+  }
+
+  async function idbGet(store, key) {
+    const db = await openDatabase();
+    return new Promise((resolve) => {
+      const request = db.transaction(store, 'readonly').objectStore(store).get(key);
+      request.onsuccess = () => resolve(request.result == null ? null : request.result);
+      request.onerror = () => resolve(null);
+    });
+  }
+
+  async function idbSet(store, key, value) {
+    const db = await openDatabase();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(store, 'readwrite');
+      transaction.objectStore(store).put(value, key);
+      transaction.oncomplete = () => resolve(true);
+      transaction.onerror = () => reject(Object.assign(new Error('indexeddb-failed'), { code: 'indexeddb-failed' }));
+    });
+  }
+
+  async function readHandoff() {
+    if (isElectron) return null;
+    const value = await idbGet('handoff', 'current');
+    if (value) await idbSet('handoff', 'current', null);
+    return value;
+  }
+
+  function waitForHandoff() {
+    if (isElectron && typeof bridge.onStudioData === 'function') {
+      return new Promise((resolve) => bridge.onStudioData((payload) => resolve(payload || null)));
+    }
+    return Promise.resolve(null);
+  }
+
+  async function openStudio(dataset, lang) {
+    if (isElectron && typeof bridge.openStudio === 'function') {
+      await bridge.openStudio({ dataset, lang });
+      return true;
+    }
+    await idbSet('handoff', 'current', { dataset, lang, at: Date.now() });
+    window.location.href = 'studio.html#handoff';
+    return true;
+  }
+
+  async function readAutosave() {
+    if (isElectron && typeof bridge.studioAutosaveRead === 'function') {
+      const result = await bridge.studioAutosaveRead();
+      return result && result.ok ? result.data : null;
+    }
+    return idbGet('autosave', 'current');
+  }
+
+  async function writeAutosave(project) {
+    if (isElectron && typeof bridge.studioAutosaveWrite === 'function') {
+      await bridge.studioAutosaveWrite({ project });
+      return true;
+    }
+    await idbSet('autosave', 'current', project);
+    return true;
+  }
+
+  const RECENT_KEY = 'sa.studio.recent';
+
+  const recent = {
+    async list() {
+      if (isElectron && typeof bridge.recentList === 'function') {
+        const result = await bridge.recentList();
+        return result && result.ok ? result.data || [] : [];
+      }
+      try {
+        return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
+      } catch {
+        return [];
+      }
+    },
+    async add(entry) {
+      if (isElectron && typeof bridge.recentAdd === 'function') {
+        await bridge.recentAdd(entry);
+        return true;
+      }
+      try {
+        const list = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]').filter((item) => item.name !== entry.name);
+        list.unshift(entry);
+        localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 8)));
+      } catch {
+        /* ignore storage errors */
+      }
+      return true;
+    },
+  };
+
   async function exportJson(dataset) {
     if (!isDataset(dataset)) throw Object.assign(new Error('nothing-to-export'), { code: 'nothing-to-export' });
     const handle = (dataset.profile && dataset.profile.handle) || 'profile';
@@ -183,8 +340,15 @@ SA.platform = (() => {
     cache,
     loadImage,
     importJson,
+    readFile,
     saveFile,
     exportJson,
+    readHandoff,
+    waitForHandoff,
+    openStudio,
+    readAutosave,
+    writeAutosave,
+    recent,
     openExternal,
     onProgress,
   };

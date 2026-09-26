@@ -196,7 +196,7 @@ The pure modules are: `easing`, `tween`, `rng`, `color`, `srt`, `script-gen`, `l
 ## 3. Target file tree
 
 ```
-main.js                         EDIT  new IPC (file:save, file:stream-*, image:fetch, studio:open); remove snapshot window
+main.js                         EDIT  new IPC (file:save/open, file:stream-*, image:fetch, asset:read, studio:open, studio:autosave-*, recent:*); remove snapshot window
 preload.js                      EDIT  expose new IPC
 package.json                    EDIT  scripts: check, test, vendor; devDeps: mp4-muxer, webm-muxer, opentype.js, earcut
 scripts/check.js                NEW
@@ -1715,7 +1715,7 @@ A custom DOM menu bar (not the native Electron menu, so it works the same on the
 
 ### 11.1 `main.js` / `preload.js`
 - **New IPC** (all use `ok`/`fail`, and every path comes from a dialog chosen by the user):
-  - `file:save`
+  - `file:save`, `file:open`
   - `file:stream-open`, `file:stream-write`, `file:stream-close`, `file:stream-abort` (keep a `Map<id, fd>`, and close any leftover streams on `will-quit`)
   - `image:fetch` (host allow-list)
   - `asset:read` (reads only `renderer/fonts/` and `renderer/vendor/`; used by `SA.platform.readAsset` because `fetch()` cannot read `file://`)

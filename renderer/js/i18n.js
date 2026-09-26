@@ -78,6 +78,7 @@ SA.i18n = (() => {
         export: 'Export JSON',
         import: 'Import JSON',
         saveImage: 'Save image',
+        studio: 'Open Studio',
       },
       image: {
         jpg169: '16:9 JPG',
@@ -101,6 +102,18 @@ SA.i18n = (() => {
         unofficial: 'unofficial',
       },
       studio: {
+        title: 'Suno Achievement Studio',
+        menu: { file: 'File', generate: 'Generate', output: 'Output', settings: 'Settings', view: 'View' },
+        file: { new: 'New project', open: 'Open project…', save: 'Save project', saveAs: 'Save project as…', importJson: 'Import profile JSON…', importSrt: 'Import SRT…', recent: 'Recent projects', noRecent: 'No recent projects', back: 'Back to achievements' },
+        generate: { script: 'Script from data…', distribute: 'Distribute cues evenly', randomStyle: 'Random style…', applyPreset: 'Apply preset…', fitAudio: 'Fit cues to audio' },
+        output: { saveImage: 'Save achievement image', image169Jpg: '16:9 JPG', image169Png: '16:9 PNG', image916Jpg: '9:16 JPG', image916Png: '9:16 PNG', exportSrt: 'Export SRT…', exportVideo: 'Export video…' },
+        settings: { language: 'Language', autosave: 'Autosave' },
+        view: { aspect169: '16:9', aspect916: '9:16', panels: 'Panels', panelMedia: 'Media', panelInspector: 'Inspector', panelTimeline: 'Timeline', layout: 'Layout', layoutStandard: 'Standard', layoutWide: 'Wide preview', layoutTimeline: 'Timeline focus', layoutReset: 'Reset layout', guides: 'Guides', snapping: 'Snapping' },
+        panel: { media: 'Media', songs: 'Songs', cues: 'Cues', aspect: 'Aspect', duration: 'Duration', inspector: 'Inspector', inspectorPlaceholder: 'Select a cue to inspect it.', timeline: 'Timeline', timelinePlaceholder: 'The timeline editor arrives with the video engine in a later step.' },
+        welcome: { title: 'Welcome to the Studio', body: 'Import a profile JSON, open a project, or import an SRT to start.', importJson: 'Import profile JSON', openProject: 'Open project', importSrt: 'Import SRT' },
+        transport: { start: 'Go to start', prevCue: 'Previous cue', play: 'Play / pause', nextCue: 'Next cue', end: 'Go to end' },
+        dialog: { script: { title: 'Script from data', intro: 'Intro', reveal: 'Achievement reveal', which: 'Show', unlocked: 'Unlocked only', all: 'All badges', stats: 'Stats', topSongs: 'Top songs', count: 'Count', completion: 'Completion', outro: 'Outro', perCue: 'Cue length (s)', gap: 'Gap (s)', cancel: 'Cancel', generate: 'Generate' } },
+        toast: { saved: 'Project saved', opened: 'Project opened', newProject: 'New project', srtImported: '{n} cues imported', srtWarnings: '{n} SRT warnings', error: 'Something went wrong', cancelled: 'Cancelled', scriptGenerated: '{n} cues generated', imageSaved: 'Image saved to {path}', needData: 'Import a profile JSON first', profileImported: 'Profile imported', srtExported: 'SRT saved to {path}', languageChanged: 'Language changed', invalidProject: 'This is not a valid project file', newerVersion: 'This project needs a newer app version', notYet: 'Coming in a later step', split: 'Cue split' },
         script: {
           locked: 'Locked',
           stat: {
@@ -230,6 +243,7 @@ SA.i18n = (() => {
         export: 'JSONエクスポート',
         import: 'JSONインポート',
         saveImage: '画像を保存',
+        studio: 'スタジオを開く',
       },
       image: {
         jpg169: '16:9 JPG',
@@ -253,6 +267,18 @@ SA.i18n = (() => {
         unofficial: '非公式',
       },
       studio: {
+        title: 'Suno Achievement スタジオ',
+        menu: { file: 'ファイル', generate: '生成', output: '出力', settings: '設定', view: '表示' },
+        file: { new: '新規プロジェクト', open: 'プロジェクトを開く…', save: 'プロジェクトを保存', saveAs: '名前を付けて保存…', importJson: 'プロフィールJSONを読み込む…', importSrt: 'SRTを読み込む…', recent: '最近のプロジェクト', noRecent: '最近のプロジェクトはありません', back: '実績ページに戻る' },
+        generate: { script: 'データから台本を生成…', distribute: 'キューを均等に配置', randomStyle: 'スタイルをランダム化…', applyPreset: 'プリセットを適用…', fitAudio: '音声に合わせる' },
+        output: { saveImage: '実績画像を保存', image169Jpg: '16:9 JPG', image169Png: '16:9 PNG', image916Jpg: '9:16 JPG', image916Png: '9:16 PNG', exportSrt: 'SRTを書き出す…', exportVideo: '動画を書き出す…' },
+        settings: { language: '言語', autosave: '自動保存' },
+        view: { aspect169: '16:9', aspect916: '9:16', panels: 'パネル', panelMedia: 'メディア', panelInspector: 'インスペクター', panelTimeline: 'タイムライン', layout: 'レイアウト', layoutStandard: '標準', layoutWide: 'プレビュー拡大', layoutTimeline: 'タイムライン優先', layoutReset: 'レイアウトをリセット', guides: 'ガイド', snapping: 'スナップ' },
+        panel: { media: 'メディア', songs: '楽曲', cues: 'キュー', aspect: 'アスペクト', duration: '長さ', inspector: 'インスペクター', inspectorPlaceholder: 'キューを選択すると詳細を編集できます。', timeline: 'タイムライン', timelinePlaceholder: 'タイムライン編集は動画エンジン導入後のステップで追加されます。' },
+        welcome: { title: 'スタジオへようこそ', body: 'プロフィールJSONの読み込み、プロジェクトを開く、SRTの読み込みから始められます。', importJson: 'プロフィールJSONを読み込む', openProject: 'プロジェクトを開く', importSrt: 'SRTを読み込む' },
+        transport: { start: '先頭へ', prevCue: '前のキュー', play: '再生／一時停止', nextCue: '次のキュー', end: '末尾へ' },
+        dialog: { script: { title: 'データから台本を生成', intro: 'イントロ', reveal: '実績の発表', which: '表示範囲', unlocked: '達成済みのみ', all: '全バッジ', stats: '統計', topSongs: 'トップ楽曲', count: '件数', completion: '達成率', outro: 'アウトロ', perCue: 'キュー長（秒）', gap: '間隔（秒）', cancel: 'キャンセル', generate: '生成' } },
+        toast: { saved: 'プロジェクトを保存しました', opened: 'プロジェクトを開きました', newProject: '新規プロジェクト', srtImported: '{n}件のキューを読み込みました', srtWarnings: 'SRT警告 {n}件', error: 'エラーが発生しました', cancelled: 'キャンセルしました', scriptGenerated: '{n}件のキューを生成しました', imageSaved: '画像を {path} に保存しました', needData: '先にプロフィールJSONを読み込んでください', profileImported: 'プロフィールを読み込みました', srtExported: 'SRTを {path} に保存しました', languageChanged: '言語を変更しました', invalidProject: '有効なプロジェクトファイルではありません', newerVersion: '新しいバージョンのアプリが必要です', notYet: '後のステップで対応します', split: 'キューを分割しました' },
         script: {
           locked: '未達成',
           stat: {
@@ -382,6 +408,7 @@ SA.i18n = (() => {
         export: 'Exportar JSON',
         import: 'Importar JSON',
         saveImage: 'Guardar imagen',
+        studio: 'Abrir Studio',
       },
       image: {
         jpg169: '16:9 JPG',
@@ -405,6 +432,18 @@ SA.i18n = (() => {
         unofficial: 'no oficial',
       },
       studio: {
+        title: 'Suno Achievement Studio',
+        menu: { file: 'Archivo', generate: 'Generar', output: 'Salida', settings: 'Ajustes', view: 'Ver' },
+        file: { new: 'Nuevo proyecto', open: 'Abrir proyecto…', save: 'Guardar proyecto', saveAs: 'Guardar como…', importJson: 'Importar JSON de perfil…', importSrt: 'Importar SRT…', recent: 'Proyectos recientes', noRecent: 'No hay proyectos recientes', back: 'Volver a logros' },
+        generate: { script: 'Guion desde datos…', distribute: 'Distribuir cues', randomStyle: 'Estilo aleatorio…', applyPreset: 'Aplicar preajuste…', fitAudio: 'Ajustar al audio' },
+        output: { saveImage: 'Guardar imagen de logros', image169Jpg: '16:9 JPG', image169Png: '16:9 PNG', image916Jpg: '9:16 JPG', image916Png: '9:16 PNG', exportSrt: 'Exportar SRT…', exportVideo: 'Exportar vídeo…' },
+        settings: { language: 'Idioma', autosave: 'Autoguardado' },
+        view: { aspect169: '16:9', aspect916: '9:16', panels: 'Paneles', panelMedia: 'Medios', panelInspector: 'Inspector', panelTimeline: 'Línea de tiempo', layout: 'Diseño', layoutStandard: 'Estándar', layoutWide: 'Vista amplia', layoutTimeline: 'Enfoque en línea de tiempo', layoutReset: 'Restablecer diseño', guides: 'Guías', snapping: 'Ajuste' },
+        panel: { media: 'Medios', songs: 'Canciones', cues: 'Cues', aspect: 'Formato', duration: 'Duración', inspector: 'Inspector', inspectorPlaceholder: 'Selecciona un cue para editarlo.', timeline: 'Línea de tiempo', timelinePlaceholder: 'El editor de línea de tiempo llegará con el motor de vídeo en un paso posterior.' },
+        welcome: { title: 'Bienvenido al Studio', body: 'Importa un JSON de perfil, abre un proyecto o importa un SRT para empezar.', importJson: 'Importar JSON de perfil', openProject: 'Abrir proyecto', importSrt: 'Importar SRT' },
+        transport: { start: 'Ir al inicio', prevCue: 'Cue anterior', play: 'Reproducir / pausar', nextCue: 'Cue siguiente', end: 'Ir al final' },
+        dialog: { script: { title: 'Guion desde datos', intro: 'Intro', reveal: 'Presentación de logros', which: 'Mostrar', unlocked: 'Solo desbloqueados', all: 'Todos los logros', stats: 'Estadísticas', topSongs: 'Mejores canciones', count: 'Cantidad', completion: 'Progreso', outro: 'Cierre', perCue: 'Duración del cue (s)', gap: 'Intervalo (s)', cancel: 'Cancelar', generate: 'Generar' } },
+        toast: { saved: 'Proyecto guardado', opened: 'Proyecto abierto', newProject: 'Nuevo proyecto', srtImported: '{n} cues importados', srtWarnings: '{n} avisos de SRT', error: 'Algo ha fallado', cancelled: 'Cancelado', scriptGenerated: '{n} cues generados', imageSaved: 'Imagen guardada en {path}', needData: 'Importa primero un JSON de perfil', profileImported: 'Perfil importado', srtExported: 'SRT guardado en {path}', languageChanged: 'Idioma cambiado', invalidProject: 'No es un archivo de proyecto válido', newerVersion: 'Se necesita una versión más reciente de la app', notYet: 'Llegará en un paso posterior', split: 'Cue dividido' },
         script: {
           locked: 'Bloqueado',
           stat: {
@@ -534,6 +573,7 @@ SA.i18n = (() => {
         export: 'Exporter JSON',
         import: 'Importer JSON',
         saveImage: "Enregistrer l'image",
+        studio: 'Ouvrir le Studio',
       },
       image: {
         jpg169: '16:9 JPG',
@@ -557,6 +597,18 @@ SA.i18n = (() => {
         unofficial: 'non officiel',
       },
       studio: {
+        title: 'Suno Achievement Studio',
+        menu: { file: 'Fichier', generate: 'Générer', output: 'Sortie', settings: 'Réglages', view: 'Affichage' },
+        file: { new: 'Nouveau projet', open: 'Ouvrir un projet…', save: 'Enregistrer le projet', saveAs: 'Enregistrer sous…', importJson: 'Importer un JSON de profil…', importSrt: 'Importer un SRT…', recent: 'Projets récents', noRecent: 'Aucun projet récent', back: "Retour aux succès" },
+        generate: { script: 'Scénario depuis les données…', distribute: 'Répartir les cues', randomStyle: 'Style aléatoire…', applyPreset: 'Appliquer un préréglage…', fitAudio: "Ajuster à l'audio" },
+        output: { saveImage: 'Enregistrer l’image des succès', image169Jpg: '16:9 JPG', image169Png: '16:9 PNG', image916Jpg: '9:16 JPG', image916Png: '9:16 PNG', exportSrt: 'Exporter le SRT…', exportVideo: 'Exporter la vidéo…' },
+        settings: { language: 'Langue', autosave: 'Sauvegarde auto' },
+        view: { aspect169: '16:9', aspect916: '9:16', panels: 'Panneaux', panelMedia: 'Médias', panelInspector: 'Inspecteur', panelTimeline: 'Timeline', layout: 'Disposition', layoutStandard: 'Standard', layoutWide: 'Aperçu large', layoutTimeline: 'Timeline en avant', layoutReset: 'Réinitialiser', guides: 'Repères', snapping: 'Magnétisme' },
+        panel: { media: 'Médias', songs: 'Titres', cues: 'Cues', aspect: 'Format', duration: 'Durée', inspector: 'Inspecteur', inspectorPlaceholder: 'Sélectionnez un cue pour le modifier.', timeline: 'Timeline', timelinePlaceholder: "L'éditeur de timeline arrivera avec le moteur vidéo à une étape ultérieure." },
+        welcome: { title: 'Bienvenue dans le Studio', body: "Importez un JSON de profil, ouvrez un projet ou importez un SRT pour commencer.", importJson: 'Importer un JSON de profil', openProject: 'Ouvrir un projet', importSrt: 'Importer un SRT' },
+        transport: { start: 'Début', prevCue: 'Cue précédent', play: 'Lecture / pause', nextCue: 'Cue suivant', end: 'Fin' },
+        dialog: { script: { title: 'Scénario depuis les données', intro: 'Intro', reveal: 'Révélation des succès', which: 'Afficher', unlocked: 'Débloqués seulement', all: 'Tous les succès', stats: 'Statistiques', topSongs: 'Meilleurs titres', count: 'Nombre', completion: 'Progression', outro: 'Outro', perCue: 'Durée du cue (s)', gap: 'Intervalle (s)', cancel: 'Annuler', generate: 'Générer' } },
+        toast: { saved: 'Projet enregistré', opened: 'Projet ouvert', newProject: 'Nouveau projet', srtImported: '{n} cues importés', srtWarnings: '{n} avertissements SRT', error: "Une erreur s'est produite", cancelled: 'Annulé', scriptGenerated: '{n} cues générés', imageSaved: 'Image enregistrée dans {path}', needData: "Importez d'abord un JSON de profil", profileImported: 'Profil importé', srtExported: 'SRT enregistré dans {path}', languageChanged: 'Langue modifiée', invalidProject: "Ce n'est pas un fichier de projet valide", newerVersion: "Ce projet nécessite une version plus récente de l'app", notYet: 'Prévu pour une étape ultérieure', split: 'Cue divisé' },
         script: {
           locked: 'Verrouillé',
           stat: {
@@ -686,6 +738,7 @@ SA.i18n = (() => {
         export: 'Экспорт JSON',
         import: 'Импорт JSON',
         saveImage: 'Сохранить изображение',
+        studio: 'Открыть Studio',
       },
       image: {
         jpg169: '16:9 JPG',
@@ -709,6 +762,18 @@ SA.i18n = (() => {
         unofficial: 'неофициально',
       },
       studio: {
+        title: 'Suno Achievement Studio',
+        menu: { file: 'Файл', generate: 'Создание', output: 'Экспорт', settings: 'Настройки', view: 'Вид' },
+        file: { new: 'Новый проект', open: 'Открыть проект…', save: 'Сохранить проект', saveAs: 'Сохранить как…', importJson: 'Импорт JSON профиля…', importSrt: 'Импорт SRT…', recent: 'Недавние проекты', noRecent: 'Недавних проектов нет', back: 'Назад к достижениям' },
+        generate: { script: 'Сценарий по данным…', distribute: 'Распределить cues', randomStyle: 'Случайный стиль…', applyPreset: 'Применить пресет…', fitAudio: 'Подстроить под аудио' },
+        output: { saveImage: 'Сохранить изображение достижений', image169Jpg: '16:9 JPG', image169Png: '16:9 PNG', image916Jpg: '9:16 JPG', image916Png: '9:16 PNG', exportSrt: 'Экспорт SRT…', exportVideo: 'Экспорт видео…' },
+        settings: { language: 'Язык', autosave: 'Автосохранение' },
+        view: { aspect169: '16:9', aspect916: '9:16', panels: 'Панели', panelMedia: 'Медиа', panelInspector: 'Инспектор', panelTimeline: 'Таймлайн', layout: 'Раскладка', layoutStandard: 'Стандартная', layoutWide: 'Широкий предпросмотр', layoutTimeline: 'Акцент на таймлайне', layoutReset: 'Сбросить раскладку', guides: 'Направляющие', snapping: 'Привязка' },
+        panel: { media: 'Медиа', songs: 'Треки', cues: 'Cues', aspect: 'Формат', duration: 'Длительность', inspector: 'Инспектор', inspectorPlaceholder: 'Выберите cue для редактирования.', timeline: 'Таймлайн', timelinePlaceholder: 'Редактор таймлайна появится вместе с видеодвижком на следующем шаге.' },
+        welcome: { title: 'Добро пожаловать в Studio', body: 'Импортируйте JSON профиля, откройте проект или импортируйте SRT, чтобы начать.', importJson: 'Импорт JSON профиля', openProject: 'Открыть проект', importSrt: 'Импорт SRT' },
+        transport: { start: 'В начало', prevCue: 'Предыдущий cue', play: 'Играть / пауза', nextCue: 'Следующий cue', end: 'В конец' },
+        dialog: { script: { title: 'Сценарий по данным', intro: 'Интро', reveal: 'Показ достижений', which: 'Показывать', unlocked: 'Только полученные', all: 'Все достижения', stats: 'Статистика', topSongs: 'Лучшие треки', count: 'Количество', completion: 'Прогресс', outro: 'Аутро', perCue: 'Длина cue (с)', gap: 'Интервал (с)', cancel: 'Отмена', generate: 'Создать' } },
+        toast: { saved: 'Проект сохранён', opened: 'Проект открыт', newProject: 'Новый проект', srtImported: 'Импортировано cues: {n}', srtWarnings: 'Предупреждения SRT: {n}', error: 'Что-то пошло не так', cancelled: 'Отменено', scriptGenerated: 'Создано cues: {n}', imageSaved: 'Изображение сохранено в {path}', needData: 'Сначала импортируйте JSON профиля', profileImported: 'Профиль импортирован', srtExported: 'SRT сохранён в {path}', languageChanged: 'Язык изменён', invalidProject: 'Это не корректный файл проекта', newerVersion: 'Для проекта нужна более новая версия приложения', notYet: 'Появится на следующем шаге', split: 'Cue разделён' },
         script: {
           locked: 'Не получено',
           stat: {

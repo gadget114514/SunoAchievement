@@ -181,6 +181,23 @@ function registerIpc() {
     }
   });
 
+  ipcMain.handle('file:open', async (event, payload) => {
+    try {
+      const owner = BrowserWindow.fromWebContents(event.sender);
+      const result = await dialog.showOpenDialog(owner, {
+        title: (payload && payload.title) || 'Open file',
+        properties: ['openFile'],
+        filters: (payload && payload.filters) || [{ name: 'All files', extensions: ['*'] }],
+      });
+      if (result.canceled || !result.filePaths.length) return ok({ canceled: true });
+      const filePath = result.filePaths[0];
+      const buffer = fs.readFileSync(filePath);
+      return ok({ canceled: false, name: path.basename(filePath), type: '', bytes: new Uint8Array(buffer), path: filePath });
+    } catch (error) {
+      return fail(error);
+    }
+  });
+
   ipcMain.handle('file:save', async (event, payload) => {
     try {
       const bytes = payload && payload.bytes;
@@ -204,6 +221,67 @@ function registerIpc() {
   ipcMain.handle('image:fetch', async (_event, payload) => {
     try {
       return ok(await fetchImageDataUrl(payload && payload.url));
+    } catch (error) {
+      return fail(error);
+    }
+  });
+
+  ipcMain.handle('studio:open', async (event, payload) => {
+    try {
+      const win = BrowserWindow.fromWebContents(event.sender);
+      await win.loadFile(path.join(__dirname, 'renderer', 'studio.html'));
+      win.webContents.send('studio:data', { data: payload && payload.dataset, lang: payload && payload.lang });
+      return ok(true);
+    } catch (error) {
+      return fail(error);
+    }
+  });
+
+  ipcMain.handle('studio:autosave-read', () => {
+    try {
+      const file = path.join(app.getPath('userData'), 'studio-autosave.json');
+      if (!fs.existsSync(file)) return ok(null);
+      return ok(JSON.parse(fs.readFileSync(file, 'utf8')));
+    } catch (error) {
+      return fail(error);
+    }
+  });
+
+  ipcMain.handle('studio:autosave-write', (_event, payload) => {
+    try {
+      const file = path.join(app.getPath('userData'), 'studio-autosave.json');
+      fs.writeFileSync(file, JSON.stringify(payload && payload.project));
+      return ok(true);
+    } catch (error) {
+      return fail(error);
+    }
+  });
+
+  ipcMain.handle('recent:list', () => {
+    try {
+      const file = path.join(app.getPath('userData'), 'recent.json');
+      if (!fs.existsSync(file)) return ok([]);
+      const list = JSON.parse(fs.readFileSync(file, 'utf8'));
+      return ok(Array.isArray(list) ? list : []);
+    } catch {
+      return ok([]);
+    }
+  });
+
+  ipcMain.handle('recent:add', (_event, entry) => {
+    try {
+      const file = path.join(app.getPath('userData'), 'recent.json');
+      let list = [];
+      try {
+        list = JSON.parse(fs.readFileSync(file, 'utf8'));
+      } catch {
+        list = [];
+      }
+      if (!Array.isArray(list)) list = [];
+      list = list.filter((item) => item && (!entry || item.name !== entry.name));
+      list.unshift(entry);
+      fs.writeFileSync(file, JSON.stringify(list.slice(0, 8), null, 2));
+      return ok(true);
     } catch (error) {
       return fail(error);
     }
@@ -343,6 +421,59 @@ function createWindow() {
           const layoutImage = await win.webContents.capturePage({ x: 0, y: 0, width: 1920, height: 1080 });
           fs.writeFileSync(path.join(app.getPath('temp'), 'suno-layout-smoke.jpg'), layoutImage.toJPEG(85));
         }
+        if (process.env.SA_SMOKE_STUDIO) {
+          const datasetJson = await win.webContents.executeJavaScript('JSON.stringify(window.SA.app.currentData())');
+          await win.loadFile(path.join(__dirname, 'renderer', 'studio.html'));
+          win.webContents.send('studio:data', { data: JSON.parse(datasetJson), lang: 'ja' });
+          const studio = await win.webContents.executeJavaScript(`(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            const before = {
+              menus: document.querySelectorAll('#menubar .menu-title').length,
+              title: document.querySelector('[data-menu="file"]') && document.querySelector('[data-menu="file"]').textContent,
+              name: document.getElementById('media-name').textContent,
+              welcomeHidden: document.getElementById('welcome').hidden,
+              panels: document.querySelectorAll('.panel').length,
+            };
+            document.querySelector('[data-menu="view"]').click();
+            const dropdownOpen = !!document.querySelector('.dropdown');
+            const items = document.querySelectorAll('.dropdown .menu-item').length;
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+            const dropdownClosed = !document.querySelector('.dropdown');
+            window.SA.store.commands.setOutput({ fps: 60 });
+            const after = window.SA.store.state.project.output.fps;
+            window.SA.store.undo();
+            const undone = window.SA.store.state.project.output.fps;
+            window.SA.store.redo();
+            const redone = window.SA.store.state.project.output.fps;
+            const project = window.SA.store.state.project;
+            const cues = window.SA.scriptGen.build(window.SA.achievements.evaluate(project.dataset), project.dataset, {}, window.SA.i18n.t, window.SA.format);
+            window.SA.store.commands.generateScript(cues, {});
+            const cueCount = window.SA.store.state.project.script.cues.length;
+            await window.SA.io.saveAutosave(window.SA.store.state.project);
+            const missing = [];
+            for (const language of window.SA.i18n.languages) {
+              window.SA.i18n.set(language.code);
+              window.SA.menu.build();
+              for (const node of document.querySelectorAll('#menubar .menu-title')) {
+                const text = (node.textContent || '').trim();
+                if (!text || /^[a-z]+\\.[a-zA-Z_.]+$/.test(text)) missing.push(language.code + ':' + text);
+              }
+            }
+            window.SA.i18n.set('ja');
+            window.SA.menu.build();
+            return JSON.stringify({ before, dropdownOpen, items, dropdownClosed, after, undone, redone, cueCount, langMissing: [...new Set(missing)].slice(0, 8), langMissingCount: missing.length });
+          })()`);
+          console.log('SMOKE_STUDIO=' + studio);
+          await win.loadFile(path.join(__dirname, 'renderer', 'studio.html'));
+          await new Promise((resolve) => setTimeout(resolve, 1400));
+          const restored = await win.webContents.executeJavaScript(`JSON.stringify({
+            name: document.getElementById('media-name').textContent,
+            cues: window.SA.store.state.project.script.cues.length,
+            fps: window.SA.store.state.project.output.fps,
+          })`);
+          console.log('SMOKE_STUDIO_RESTORE=' + restored);
+        }
+
         if (process.env.SA_SMOKE_ERRORS) {
           const notFound = await win.webContents.executeJavaScript(`(async () => {
             await window.SA.app.openProfile('zzzznonexistentzzzz9');

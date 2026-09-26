@@ -64,6 +64,7 @@
     el.btnSnapshot = document.getElementById('btn-snapshot');
     el.snapshotSplit = document.getElementById('snapshot-split');
     el.snapshotMenu = document.getElementById('snapshot-menu');
+    el.btnStudio = document.getElementById('btn-studio');
     el.btnOpen = document.getElementById('btn-open');
     el.btnRefresh = document.getElementById('btn-refresh');
     el.btnExport = document.getElementById('btn-export');
@@ -175,6 +176,13 @@
       if (event.key === 'Escape') closeSnapshotMenu();
     });
 
+    el.btnStudio.addEventListener('click', () => {
+      if (!state.dataset) {
+        toast('studio.toast.needData');
+        return;
+      }
+      platform.openStudio(state.dataset, i18n.lang());
+    });
     el.btnOpen.addEventListener('click', () => {
       if (state.handle) data.openExternal(cfg.profileUrl(state.handle));
     });
